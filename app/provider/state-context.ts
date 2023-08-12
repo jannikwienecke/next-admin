@@ -3,7 +3,9 @@ import {
   ConfigTypeClient,
   ConfigTypeDictClient,
   FilterType,
+  FormFieldType,
   IDataValue,
+  ModelSchema,
   SidebarCategoryProps,
   ViewToggleOptionType,
 } from "../admin-utils/base-types";
@@ -12,6 +14,7 @@ export interface AdminStateContextType {
   internal: {
     config: ConfigTypeDictClient<any>;
     data: IDataValue[];
+    modelSchema: ModelSchema;
   };
   config: ConfigTypeClient<any>;
   columns: ColumnDef<any>[];
@@ -31,12 +34,24 @@ export interface AdminStateContextType {
       placeholder: string;
     };
   };
+  form:
+    | {
+        title: string;
+        description?: string;
+        fields: FormFieldType[];
+      }
+    | undefined;
+
+  state: {
+    activeRow: IDataValue | undefined;
+  };
 }
 
 export const DEFAULT_ADMIN_STATE_CONTEXT: AdminStateContextType = {
   internal: {
     data: [],
     config: {} as ConfigTypeDictClient<any>,
+    modelSchema: {} as ModelSchema,
   },
 
   config: {} as ConfigTypeClient<any>,
@@ -56,5 +71,13 @@ export const DEFAULT_ADMIN_STATE_CONTEXT: AdminStateContextType = {
       value: "",
       placeholder: "Search...",
     },
+  },
+  form: {
+    title: "",
+    description: "",
+    fields: [],
+  },
+  state: {
+    activeRow: undefined,
   },
 };

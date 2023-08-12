@@ -17,6 +17,12 @@ export const generateModelSchema = ({
   const modelSchema: ModelSchema = {
     columns:
       config?.fields.map((field, index) => {
+        // console.log({
+        //   kind: field.kind,
+        //   type: field.type,
+        //   name: field.name,
+        // });
+
         return {
           name: field.name,
           kind: field.kind,

@@ -2,7 +2,7 @@ import { BasePageProps, ViewName } from "./admin-utils/base-types";
 import { redirectToView } from "./admin-utils/routing";
 import { generateModelSchema } from "./admin-utils/utils.server";
 import { serverConfig } from "./config/index.server";
-import { AdminTable } from "./ui-implementations/admin-page";
+import { AdminDashboard } from "./ui-implementations/admin-page";
 
 const DEFAULT_VIEW: ViewName = "tag";
 
@@ -24,5 +24,5 @@ export default async function Home({ searchParams, params }: BasePageProps) {
 
   const modelSchema = generateModelSchema({ model: config.model });
 
-  return <AdminTable data={tasks.data} modelSchema={modelSchema} />;
+  return <AdminDashboard data={tasks.data} modelSchema={modelSchema} />;
 }

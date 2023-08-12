@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { AdminTableFilter } from "./admin-table-filter";
 import { AdminTableViewOptions } from "./admin-table-view-options";
 import { priorities, statuses } from "../config/tasks/custom-components";
-import { useMachine } from "../provider/hooks";
+import { useAdmin } from "../provider/hooks";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import React from "react";
 
@@ -20,7 +20,7 @@ export interface DataTableToolbarProps<TData> {
 export function AdminTableControl<TData>({
   table,
 }: DataTableToolbarProps<TData>) {
-  const { control, handleSearchChange } = useMachine();
+  const { control, handleSearchChange } = useAdmin();
 
   const isFiltered = table.getState().columnFilters.length > 0;
 
@@ -35,7 +35,7 @@ export function AdminTableControl<TData>({
           className="h-8 w-[150px] lg:w-[250px]"
         />
 
-        {table.getColumn("status") && (
+        {/* {table.getColumn("status") && (
           <AdminTableFilter
             column={table.getColumn("status")}
             title="Status"
@@ -48,7 +48,7 @@ export function AdminTableControl<TData>({
             title="Priority"
             options={priorities}
           />
-        )}
+        )} */}
         {isFiltered && (
           <Button
             variant="ghost"

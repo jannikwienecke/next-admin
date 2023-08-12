@@ -13,6 +13,7 @@ export interface Typegen0 {
     services: never;
   };
   eventsCausingActions: {
+    crudEdit: "CRUD_EDIT";
     init: "INIT_STATE";
     searchChanged: "SEARCH_CHANGED";
   };
@@ -22,9 +23,19 @@ export interface Typegen0 {
   matchesStates:
     | "idle"
     | "ready"
+    | "ready.crud"
+    | "ready.crud.create"
+    | "ready.crud.edit"
     | "ready.loading"
     | "ready.searching"
     | "ready.waiting"
-    | { ready?: "loading" | "searching" | "waiting" };
+    | {
+        ready?:
+          | "crud"
+          | "loading"
+          | "searching"
+          | "waiting"
+          | { crud?: "create" | "edit" };
+      };
   tags: never;
 }

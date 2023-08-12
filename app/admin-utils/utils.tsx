@@ -1,17 +1,18 @@
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { CellContext, ColumnDef, HeaderContext } from "@tanstack/react-table";
+import React from "react";
 import { AdminTableColumnHeader } from "../ui-implementations/admin-table-column-header";
 import {
   ColumnSchema,
   ColumnTypeTest,
+  ConfigTypeClient,
   ConfigTypeDictClient,
+  FormFieldType,
   IDataValue,
   ModelSchema,
   SidebarCategoryProps,
 } from "./base-types";
-import React from "react";
-import { Checkbox } from "@/components/ui/checkbox";
-import { AdminTableRowActions } from "../ui-implementations/admin-table-row-actions";
 
 export const generateColumns = <T extends IDataValue>({
   customColumns,
@@ -40,24 +41,6 @@ export const generateColumns = <T extends IDataValue>({
       };
       return columnType;
     });
-
-  const columnActions: ColumnDef<T> = {
-    id: "actions",
-    cell: ({ row }) => (
-      <AdminTableRowActions
-        items={[
-          {
-            id: "edit",
-            isChecked: false,
-            label: "Edit",
-            onCheck: () => {
-              //
-            },
-          },
-        ]}
-      />
-    ),
-  };
 
   const allColumns = [...customColumns, ...baseColumnsTransformed]
     .filter((column) => !columnsToHide.includes(column.accessorKey as string))
@@ -129,7 +112,7 @@ export const generateColumns = <T extends IDataValue>({
       };
     });
 
-  return [checkboxColumn as ColumnDef<T>, ...allColumns, columnActions];
+  return [checkboxColumn as ColumnDef<T>, ...allColumns];
 };
 
 const RelationalFieldWrapper = ({
@@ -156,8 +139,6 @@ const RelationalFieldWrapper = ({
   return (
     <div
       onClick={() => {
-        console.log("CLICK");
-
         alert(`Go to ${name} ${fieldId}`);
       }}
       className="cursor-pointer hover:underline"
@@ -215,10 +196,44 @@ export const generateNavigationCategories = ({
           active: false,
           name: y.name,
           onClick: () => {
-            //
+            throw new Error(
+              "generateNavigationCategories: Must be overritten. Not implemented"
+            );
           },
         };
       }),
     };
   });
+};
+
+export const generateFormFields = ({
+  modelSchema,
+  config,
+  activeRecord,
+}: {
+  modelSchema: ModelSchema;
+  config: ConfigTypeClient<any>;
+  activeRecord?: IDataValue;
+}): FormFieldType[] => {
+  const { fieldToHide } = config.form;
+
+  const _fieldsToHide = (
+    fieldToHide ? [...fieldToHide, "id"] : ["id"]
+  ) as string[];
+  return modelSchema.columns
+    .filter((col) => !_fieldsToHide.includes(col.name))
+    .map((col) => {
+      const value = activeRecord?.[col.name];
+
+      return {
+        name: col.name,
+        value: undefined,
+        defaultValue: value || undefined,
+        type: col.type as FormFieldType["type"],
+        label: `${col.name.charAt(0).toUpperCase() + col.name.slice(1)}`,
+        placeholder: `Enter ${
+          col.name.charAt(0).toUpperCase() + col.name.slice(1)
+        }`,
+      };
+    });
 };

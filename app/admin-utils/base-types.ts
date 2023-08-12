@@ -107,6 +107,10 @@ export interface ConfigTypeClient<T extends IDataValue> {
     columns: ColumnTypeTest<T>[];
     columnsToHide?: (keyof T)[];
   };
+  form: {
+    // fields:
+    fieldToHide?: (keyof T)[];
+  };
   navigation: {
     parent: ParentName;
     icon: React.ComponentType<any>;
@@ -147,3 +151,12 @@ export interface SidebarCategoryProps {
   label: string;
   items: SidebarItemProps[];
 }
+
+export type FormFieldType = React.InputHTMLAttributes<HTMLInputElement> & {
+  label: string;
+  name: string;
+  value: unknown;
+  defaultValue: string;
+  placeholder?: string;
+  type: "Int" | "String";
+};

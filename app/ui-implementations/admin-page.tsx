@@ -1,16 +1,16 @@
 "use client";
 
-import { DataTable } from "@/components/container/data-table";
 import React from "react";
 import { IDataValue, ModelSchema } from "../admin-utils/base-types";
 import { clientConfig } from "../config/index.client";
-import { useMachine } from "../provider/hooks";
+import { useAdmin } from "../provider/hooks";
 import { StateMachineProvider } from "../provider/state";
+import { AdminFormSheet } from "./admin-form-sheet";
 import { AdminLayout } from "./admin-layout";
-import { AdminTableControl } from "./admin-table-control";
-import { AdminTablePagination } from "./admin-table-pagination";
+import { AdminPageHeader } from "./admin-page-header";
+import { AdminTable } from "./admin-table";
 
-export const AdminTable = (props: {
+export const AdminDashboard = (props: {
   data: IDataValue[];
   modelSchema: ModelSchema;
 }) => {
@@ -22,7 +22,7 @@ export const AdminTable = (props: {
 };
 
 const AdminPage = (props: { data: IDataValue[]; modelSchema: ModelSchema }) => {
-  const { send, data, columns, routing } = useMachine();
+  const { send, data, columns, routing } = useAdmin();
   const { view, query } = routing;
 
   React.useEffect(() => {
@@ -44,14 +44,15 @@ const AdminPage = (props: { data: IDataValue[]; modelSchema: ModelSchema }) => {
         {!data.length && props.data.length ? (
           <></>
         ) : (
-          <DataTable
-            data={data}
-            columns={columns}
-            components={{
-              Toolbar: AdminTableControl,
-              Pagination: AdminTablePagination,
-            }}
-          />
+          <>
+            <AdminFormSheet />
+
+            <div className="hidden h-full flex-1 flex-col space-y-8 py-8 px-4 md:flex">
+              <AdminPageHeader />
+
+              <AdminTable />
+            </div>
+          </>
         )}
       </>
     </AdminLayout>

@@ -47,6 +47,9 @@ export const clientConfig: ConfigTypeClient<TagInterface> = {
     columns,
     columnsToHide: ["colorId", "AcitivityTag"],
   },
+  form: {
+    fieldToHide: ["AcitivityTag", "Color", "colorId"],
+  },
   navigation: {
     icon: TargetIcon,
     parent: "All",

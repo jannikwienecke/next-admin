@@ -1,6 +1,6 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import React from "react";
-import { ViewName } from "../admin-utils/base-types";
+import { IDataValue, ViewName } from "../admin-utils/base-types";
 import { Routing } from "../admin-utils/routing";
 import { SomeMachineContext } from "./state";
 
@@ -49,7 +49,7 @@ const useRouting = () => {
   };
 };
 
-export const useMachine = () => {
+export const useAdmin = () => {
   const [state, send] = SomeMachineContext.useActor();
   const data = SomeMachineContext.useSelector((state) => state.context.data);
   const columns = SomeMachineContext.useSelector(
@@ -63,19 +63,25 @@ export const useMachine = () => {
     (state) => state.context.navigation
   );
 
+  const form = SomeMachineContext.useSelector((state) => state.context.form);
+
   const routing = useRouting();
 
   const { handleSearchChange } = useAdminSearch();
+
+  const emiiter = useUiEvents();
 
   return {
     state,
     send,
     data,
     control,
+    form,
     columns,
     handleSearchChange,
     navigation,
     routing,
+    emiiter,
   };
 };
 
@@ -118,5 +124,39 @@ const useAdminSearch = () => {
 
   return {
     handleSearchChange,
+  };
+};
+
+const useEvents = () => {
+  const [state, send] = SomeMachineContext.useActor();
+
+  const crudCreate = state.matches("ready.crud.create");
+  React.useEffect(() => {}, []);
+};
+
+const useUiEvents = () => {
+  const [_, send] = SomeMachineContext.useActor();
+
+  const clickCreate = () => {
+    send("CRUD_CREATE");
+  };
+
+  const clickEdit = (row: IDataValue) => {
+    send({
+      type: "CRUD_EDIT",
+      data: {
+        row,
+      },
+    });
+  };
+
+  const clickCancel = () => {
+    send({ type: "CRUD_CANCEL" });
+  };
+
+  return {
+    clickCreate,
+    clickEdit,
+    clickCancel,
   };
 };

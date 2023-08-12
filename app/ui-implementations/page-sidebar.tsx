@@ -1,9 +1,9 @@
 import { Sidebar } from "@/components/container";
 import { MinusCircledIcon } from "@radix-ui/react-icons";
-import { useMachine } from "../provider/hooks";
+import { useAdmin } from "../provider/hooks";
 
 export const PageSidebar = () => {
-  const { navigation, routing } = useMachine();
+  const { navigation, routing } = useAdmin();
 
   return (
     <Sidebar
@@ -14,7 +14,6 @@ export const PageSidebar = () => {
             return {
               ...i,
               onClick: () => {
-                console.log("clicked", i.name);
                 routing.redirectToView(i.name);
               },
             };

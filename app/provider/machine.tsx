@@ -7,6 +7,7 @@ import { AdminStateEvents } from "./events";
 import { myAction } from "../api/actions";
 import {
   generateColumns,
+  generateFormFields,
   generateNavigationCategories,
 } from "../admin-utils/utils";
 
@@ -41,11 +42,31 @@ export const adminMachine = createMachine(
             actions: ["searchChanged"],
             // target: "ready.searching",
           },
+
+          // CRUD
+          CRUD_CREATE: {
+            target: "ready.crud.create",
+          },
+          CRUD_EDIT: {
+            target: "ready.crud.edit",
+            actions: ["crudEdit"],
+          },
         },
         initial: "waiting",
 
         states: {
           waiting: {},
+          crud: {
+            on: {
+              CRUD_CANCEL: {
+                target: "#admin-machine.ready.waiting",
+              },
+            },
+            states: {
+              create: {},
+              edit: {},
+            },
+          },
           searching: {
             // invoke: {
             //   id: "getUser",
@@ -77,8 +98,6 @@ export const adminMachine = createMachine(
       init: assign((context, event) => {
         const { config, modelSchema, view, query } = event.data;
 
-        console.log({ view, config });
-
         const activeClient = Object.values(config).find(
           (config) => config.name === view
         );
@@ -98,6 +117,7 @@ export const adminMachine = createMachine(
           internal: {
             config: event.data.config,
             data: event.data.data,
+            modelSchema,
           },
           config: activeClient,
           data: event.data.data,
@@ -114,6 +134,33 @@ export const adminMachine = createMachine(
               ...context.control.search,
               value: query,
             },
+          },
+          form: {
+            ...context.form,
+            title: "",
+            description: "",
+            fields: generateFormFields({ modelSchema, config: activeClient }),
+          },
+        };
+      }),
+
+      // CRUD
+      crudEdit: assign((context, event) => {
+        return {
+          ...context,
+          form: {
+            ...context.form,
+            title: "Edit row",
+            fields: generateFormFields({
+              // modelSchema: context.internal.,
+              modelSchema: context.internal.modelSchema,
+              activeRecord: event.data.row,
+              config: context.config,
+            }),
+          },
+          state: {
+            ...context.state,
+            activeRow: event.data.row,
           },
         };
       }),

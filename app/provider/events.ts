@@ -21,4 +21,16 @@ export type AdminStateEvents =
       data: {
         value: string;
       };
+    }
+  | {
+      type: "CRUD_CREATE";
+    }
+  | {
+      type: "CRUD_EDIT";
+      data: {
+        row: IDataValue;
+      };
+    }
+  | {
+      type: "CRUD_CANCEL";
     };
