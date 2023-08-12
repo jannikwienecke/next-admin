@@ -1,3 +1,7 @@
+import {
+  SidebarCategoryProps,
+  SidebarItemProps,
+} from "@/app/admin-utils/base-types";
 import { Button } from "@/components/ui/button";
 // MAYBE NEED LATER
 // import { ScrollArea } from "@/components/ui/scroll-area";
@@ -5,17 +9,6 @@ import { cn } from "@/lib/utils";
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
   categories: SidebarCategoryProps[];
-}
-
-interface SidebarItemProps {
-  label: string;
-  active?: boolean;
-  icon: React.ComponentType<any>;
-}
-
-interface SidebarCategoryProps {
-  label: string;
-  items: SidebarItemProps[];
 }
 
 export function Sidebar({ className, categories }: SidebarProps) {
@@ -52,18 +45,14 @@ const SidebarCategory = ({
   );
 };
 
-const SidebarItem = ({
-  label,
-  active,
-  ...props
-}: {
-  label: string;
-  active?: boolean;
-  icon: React.ComponentType<any>;
-}) => {
+const SidebarItem = ({ label, active, ...props }: SidebarItemProps) => {
   const variant = active ? "secondary" : "ghost";
   return (
-    <Button variant={variant} className="w-full justify-start">
+    <Button
+      onClick={props.onClick}
+      variant={variant}
+      className="w-full justify-start"
+    >
       <props.icon className="mr-2 h-4 w-4" />
       {label}
     </Button>

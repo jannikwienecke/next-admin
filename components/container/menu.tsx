@@ -46,7 +46,7 @@ export function Menu({ items }: MenuProps) {
                   index
                 ) => {
                   return (
-                    <>
+                    <div key={`sub-item-${label}-${index}`}>
                       {checkbox ? (
                         <>
                           <MenubarCheckboxItem
@@ -93,7 +93,7 @@ export function Menu({ items }: MenuProps) {
                         </MenubarItem>
                       )}
                       {index !== subItems.length - 1 && <MenubarSeparator />}
-                    </>
+                    </div>
                   );
                 }
               )}
