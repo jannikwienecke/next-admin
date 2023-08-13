@@ -4,12 +4,14 @@ import {
   DEFAULT_ADMIN_STATE_CONTEXT,
 } from "./state-context";
 import { AdminStateEvents } from "./events";
-import { myAction } from "../api/actions";
+import { serverAction } from "../api/actions";
 import {
   generateColumns,
   generateFormFields,
   generateNavigationCategories,
 } from "../admin-utils/utils";
+import { revalidatePath } from "next/cache";
+import { LL } from "@/lib/utils";
 
 export const adminMachine = createMachine(
   {
@@ -22,13 +24,15 @@ export const adminMachine = createMachine(
     id: "admin-machine",
     initial: "idle",
     context: DEFAULT_ADMIN_STATE_CONTEXT,
+    on: {
+      INIT_STATE: {
+        target: "ready",
+        actions: ["init"],
+      },
+    },
     states: {
       idle: {
         on: {
-          INIT_STATE: {
-            target: "ready",
-            actions: ["init"],
-          },
           SEARCH_CHANGED: {
             target: "ready",
             actions: ["searchChanged"],
@@ -40,52 +44,96 @@ export const adminMachine = createMachine(
         on: {
           SEARCH_CHANGED: {
             actions: ["searchChanged"],
-            // target: "ready.searching",
           },
-
           // CRUD
           CRUD_CREATE: {
-            target: "ready.crud.create",
+            target: "ready.showForm",
+            actions: ["crudCreate"],
           },
           CRUD_EDIT: {
-            target: "ready.crud.edit",
+            target: "ready.showForm",
             actions: ["crudEdit"],
+          },
+          CRUD_DELETE: {
+            target: "ready.deleting",
+            actions: ["crudDelete"],
           },
         },
         initial: "waiting",
 
         states: {
           waiting: {},
-          crud: {
-            on: {
-              CRUD_CANCEL: {
-                target: "#admin-machine.ready.waiting",
+          deleting: {
+            invoke: {
+              id: "invoke-delete-action",
+              src: async (context, event) => {
+                LL("invoke-action DELETE", { context, event });
+                await serverAction({
+                  action: {
+                    data: (event as any).data.row,
+                    name: "delete",
+                  },
+                  viewName: context.config.name,
+                });
+              },
+              onDone: {
+                target: "#admin-machine.ready",
+              },
+              onError: {
+                actions: ["crudSaveError"],
               },
             },
+          },
+          showForm: {
+            initial: "editing",
             states: {
-              create: {},
-              edit: {},
+              editing: {
+                on: {
+                  CRUD_CANCEL: {
+                    target: "#admin-machine.ready.waiting",
+                  },
+                  CRUD_SAVE: {
+                    target: "#admin-machine.ready.showForm.saving",
+                    actions: ["crudSave"],
+                  },
+                },
+              },
+              saving: {
+                invoke: {
+                  id: "invoke-action",
+                  src: async (context, event) => {
+                    LL("invoke-action", { context, event });
+
+                    if (!context.state.activeAction)
+                      throw new Error("No action");
+
+                    await serverAction({
+                      action: {
+                        data: {
+                          ...(event as any).data.formState,
+                          id:
+                            context.state.activeAction === "create"
+                              ? null
+                              : context.state.activeRow?.id,
+                        },
+                        name: context.state.activeAction,
+                      },
+                      viewName: context.config.name,
+                    });
+                  },
+                  onDone: {
+                    target: "#admin-machine.ready",
+                  },
+                  onError: {
+                    target: "editing",
+                    actions: ["crudSaveError"],
+                  },
+                },
+              },
             },
           },
-          searching: {
-            // invoke: {
-            //   id: "getUser",
-            //   src: (context, event) => myAction(),
-            //   onDone: {
-            //     target: "#admin-machine.ready",
-            //     actions: assign((context, event) => {
-            //       console.log("done", event.data);
-            //     }),
-            //     // actions: () => console.log("done"),
-            //     // actions: assign({ user: (context, event) => event.data }),
-            //   },
-            //   onError: {
-            //     target: "#admin-machine.ready",
-            //     actions: () => console.log("error"),
-            //     // actions: assign({ error: (context, event) => event.data }),
-            //   },
-            // },
-          },
+
+          searching: {},
           loading: {
             //
           },
@@ -110,6 +158,11 @@ export const adminMachine = createMachine(
           customColumns: activeClient.table.columns,
           baseColumns: modelSchema.columns,
           columnsToHide: (activeClient.table.columnsToHide || []) as string[],
+        });
+
+        const fields = generateFormFields({
+          modelSchema,
+          config: activeClient,
         });
 
         return {
@@ -139,7 +192,7 @@ export const adminMachine = createMachine(
             ...context.form,
             title: "",
             description: "",
-            fields: generateFormFields({ modelSchema, config: activeClient }),
+            fields,
           },
         };
       }),
@@ -161,6 +214,60 @@ export const adminMachine = createMachine(
           state: {
             ...context.state,
             activeRow: event.data.row,
+            activeAction: "edit" as const,
+          },
+        };
+      }),
+
+      crudCreate: assign((context, event) => {
+        return {
+          ...context,
+          form: {
+            ...context.form,
+            fields: context.form?.fields || [],
+            title: "Create row",
+          },
+          state: {
+            ...context.state,
+            activeRow: undefined,
+            activeAction: "create" as const,
+          },
+        };
+      }),
+
+      crudDelete: assign((context, event) => {
+        const row = event.data.row;
+
+        return {
+          ...context,
+          data: context.data.filter((r) => r.id !== row.id),
+        };
+      }),
+
+      crudSave: assign((context, event) => {
+        return {
+          ...context,
+          form: {
+            ...context.form,
+            title: context.form?.title || "",
+            fields: context.form?.fields || [],
+            state: event.data.formState,
+            error: undefined,
+          },
+        };
+      }),
+
+      crudSaveError: assign((context, event) => {
+        const message = (event.data as any)?.message || "Unknown error";
+        return {
+          ...context,
+          form: {
+            ...context.form,
+            title: context.form?.title || "",
+            fields: context.form?.fields || [],
+            error: {
+              message,
+            },
           },
         };
       }),

@@ -9,6 +9,7 @@ import {
   SidebarCategoryProps,
   ViewToggleOptionType,
 } from "../admin-utils/base-types";
+import { z } from "zod";
 
 export interface AdminStateContextType {
   internal: {
@@ -34,16 +35,22 @@ export interface AdminStateContextType {
       placeholder: string;
     };
   };
-  form:
-    | {
-        title: string;
-        description?: string;
-        fields: FormFieldType[];
-      }
-    | undefined;
+  form?: {
+    title?: string;
+    description?: string;
+    fields?: FormFieldType[];
+    schema?: Record<string, z.ZodType<any, any, any>>;
+    // state?: Record<string, any>;
+    error?:
+      | {
+          message: string;
+        }
+      | undefined;
+  };
 
   state: {
     activeRow: IDataValue | undefined;
+    activeAction: "create" | "edit" | undefined;
   };
 }
 
@@ -76,8 +83,10 @@ export const DEFAULT_ADMIN_STATE_CONTEXT: AdminStateContextType = {
     title: "",
     description: "",
     fields: [],
+    error: undefined,
   },
   state: {
     activeRow: undefined,
+    activeAction: undefined,
   },
 };

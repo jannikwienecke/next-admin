@@ -1,14 +1,18 @@
-import { ConfigTypeDictServer, ModelType } from "../admin-utils/base-types";
+import {
+  ConfigTypeDictServer,
+  ModelType,
+  ViewName,
+} from "../admin-utils/base-types";
 import { serverConfig as tagConfigServer } from "./tasks/config.server";
 
 const configList = [tagConfigServer];
 
-export const serverConfig: ConfigTypeDictServer<ModelType> = configList.reduce(
+export const serverConfig: ConfigTypeDictServer<ViewName> = configList.reduce(
   (acc, config) => {
     return {
       ...acc,
       [config.name]: config,
     };
   },
-  {} as ConfigTypeDictServer<ModelType>
+  {} as ConfigTypeDictServer<ViewName>
 );

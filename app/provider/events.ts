@@ -32,5 +32,17 @@ export type AdminStateEvents =
       };
     }
   | {
+      type: "CRUD_DELETE";
+      data: {
+        row: IDataValue;
+      };
+    }
+  | {
       type: "CRUD_CANCEL";
+    }
+  | {
+      type: "CRUD_SAVE";
+      data: {
+        formState: Record<string, any>;
+      };
     };

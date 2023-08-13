@@ -1,5 +1,5 @@
 import { Checkbox } from "@/components/ui/checkbox";
-import { cn } from "@/lib/utils";
+import { LL, cn } from "@/lib/utils";
 import { CellContext, ColumnDef, HeaderContext } from "@tanstack/react-table";
 import React from "react";
 import { AdminTableColumnHeader } from "../ui-implementations/admin-table-column-header";
@@ -13,6 +13,7 @@ import {
   ModelSchema,
   SidebarCategoryProps,
 } from "./base-types";
+import { z } from "zod";
 
 export const generateColumns = <T extends IDataValue>({
   customColumns,
@@ -206,6 +207,10 @@ export const generateNavigationCategories = ({
   });
 };
 
+// const formSchema = z.object({
+//   username: z.string().min(2).max(50),
+// });
+
 export const generateFormFields = ({
   modelSchema,
   config,
@@ -225,11 +230,33 @@ export const generateFormFields = ({
     .map((col) => {
       const value = activeRecord?.[col.name];
 
+      let type = col.type as FormFieldType["type"];
+      let relation = undefined as FormFieldType["relation"];
+      let name = col.name;
+      let defaultValue = value || undefined;
+
+      if (col.relationFromFields.length) {
+        type = "Relation";
+        relation = {
+          fromField: col.relationFromFields[0],
+          name: col.relationFromFields[0],
+          modelName: col.name,
+        };
+        name = col.relationFromFields[0];
+
+        defaultValue = {
+          label: activeRecord?.[col.name],
+          value: activeRecord?.[col.relationFromFields[0]],
+        };
+      }
+
       return {
-        name: col.name,
+        relation,
+        name,
         value: undefined,
-        defaultValue: value || undefined,
-        type: col.type as FormFieldType["type"],
+        defaultValue,
+        required: col.isRequired,
+        type,
         label: `${col.name.charAt(0).toUpperCase() + col.name.slice(1)}`,
         placeholder: `Enter ${
           col.name.charAt(0).toUpperCase() + col.name.slice(1)
@@ -237,3 +264,26 @@ export const generateFormFields = ({
       };
     });
 };
+
+// export const generateZodSchema = ({
+//   fields,
+// }: {
+//   fields: FormFieldType[];
+// }): z.ZodSchema<any> => {
+//   const dictTypeToZodTypeDict = {
+//     String: z.string().min(2).max(50),
+//     Int: z.number(),
+//   };
+
+//   return fields.reduce((acc, field) => {
+//     const zodTypeFn = dictTypeToZodTypeDict[field.type];
+
+//     // acc[field.name] = zodTypeFn;
+//     // acc[field.name as any] = zodTypeFn;
+
+//     return {
+//       ...acc,
+//       label: zodTypeFn,
+//     };
+//   }, z.object({}));
+// };

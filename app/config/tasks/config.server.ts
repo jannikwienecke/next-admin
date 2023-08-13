@@ -1,12 +1,18 @@
-import { ConfigTypeServer } from "@/app/admin-utils/base-types";
+import {
+  ConfigTypeServer,
+  LoaderFunctionType,
+} from "@/app/admin-utils/base-types";
 import { prisma } from "@/app/db";
-import { Tag } from "@prisma/client";
 import { TagInterface } from "./types";
 
-export const loader = async (): Promise<{
-  data: TagInterface[];
-}> => {
+export const loader: LoaderFunctionType<TagInterface> = async ({ query }) => {
   const tags = await prisma.tag.findMany({
+    where: {
+      label: {
+        contains: query,
+        mode: "insensitive",
+      },
+    },
     include: {
       Color: true,
     },

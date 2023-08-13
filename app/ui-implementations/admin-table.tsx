@@ -1,13 +1,12 @@
 import { DataTable } from "@/components/container/data-table";
-import { useAdmin } from "../provider/hooks";
+import { ColumnDef } from "@tanstack/react-table";
+import { useAdminState } from "../provider/state";
 import { AdminTableControl } from "./admin-table-control";
 import { AdminTablePagination } from "./admin-table-pagination";
-import { ColumnDef } from "@tanstack/react-table";
 import { AdminTableRowActions } from "./admin-table-row-actions";
-import { IDataValue } from "../admin-utils/base-types";
 
 export const AdminTable = () => {
-  const { data, columns, emiiter } = useAdmin();
+  const { data, columns, emiiter } = useAdminState();
 
   const columnActions: ColumnDef<any> = {
     id: "actions",
@@ -19,6 +18,12 @@ export const AdminTable = () => {
             isChecked: false,
             label: "Edit",
             onCheck: () => emiiter.clickEdit(row.original),
+          },
+          {
+            id: "delete",
+            isChecked: false,
+            label: "Delete",
+            onCheck: () => emiiter.clickDelete(row.original),
           },
         ]}
       />

@@ -6,12 +6,8 @@ import { Table } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 
 import { Input } from "@/components/ui/input";
-import { AdminTableFilter } from "./admin-table-filter";
+import { useAdminState } from "../provider/state";
 import { AdminTableViewOptions } from "./admin-table-view-options";
-import { priorities, statuses } from "../config/tasks/custom-components";
-import { useAdmin } from "../provider/hooks";
-import { usePathname, useSearchParams, useRouter } from "next/navigation";
-import React from "react";
 
 export interface DataTableToolbarProps<TData> {
   table: Table<TData>;
@@ -20,7 +16,7 @@ export interface DataTableToolbarProps<TData> {
 export function AdminTableControl<TData>({
   table,
 }: DataTableToolbarProps<TData>) {
-  const { control, handleSearchChange } = useAdmin();
+  const { control, handleSearchChange } = useAdminState();
 
   const isFiltered = table.getState().columnFilters.length > 0;
 
@@ -29,6 +25,7 @@ export function AdminTableControl<TData>({
       <div className="flex flex-1 items-center space-x-2">
         {/* SEARCH CONTROL */}
         <Input
+          autoFocus
           placeholder={control.search.placeholder}
           value={control.search.value}
           onChange={handleSearchChange}

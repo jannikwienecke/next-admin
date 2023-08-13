@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { useAdmin } from "../provider/hooks";
+import { useAdminState } from "../provider/state";
 
 export const AdminPageHeader = () => {
-  const { emiiter } = useAdmin();
+  const { emiiter } = useAdminState();
 
   return (
     <div className="flex items-center justify-between space-y-2">

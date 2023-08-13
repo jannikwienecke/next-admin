@@ -4,11 +4,16 @@ import React from "react";
 import { IDataValue, ModelSchema } from "../admin-utils/base-types";
 import { clientConfig } from "../config/index.client";
 import { useAdmin } from "../provider/hooks";
-import { StateMachineProvider } from "../provider/state";
+import {
+  StateMachineProvider,
+  StateProvider,
+  useAdminState,
+} from "../provider/state";
 import { AdminFormSheet } from "./admin-form-sheet";
 import { AdminLayout } from "./admin-layout";
 import { AdminPageHeader } from "./admin-page-header";
 import { AdminTable } from "./admin-table";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 export const AdminDashboard = (props: {
   data: IDataValue[];
@@ -16,13 +21,15 @@ export const AdminDashboard = (props: {
 }) => {
   return (
     <StateMachineProvider>
-      <AdminPage {...props} />
+      <StateProvider>
+        <AdminPage {...props} />
+      </StateProvider>
     </StateMachineProvider>
   );
 };
 
 const AdminPage = (props: { data: IDataValue[]; modelSchema: ModelSchema }) => {
-  const { send, data, columns, routing } = useAdmin();
+  const { send, data, columns, routing } = useAdminState();
   const { view, query } = routing;
 
   React.useEffect(() => {

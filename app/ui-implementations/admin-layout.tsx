@@ -1,8 +1,28 @@
-import { PageTopMenu, PageSidebar } from ".";
+import { Toaster } from "@/components/ui/toaster";
+import { useToast } from "@/components/ui/use-toast";
+import React from "react";
+import { PageSidebar, PageTopMenu } from ".";
+import { useAdminState } from "../provider/state";
 
 export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
+  const { toast } = useToast();
+  const { form } = useAdminState();
+
+  React.useEffect(() => {
+    const error = form?.error;
+    if (!error?.message) return;
+
+    toast({
+      title: "Something went wrong",
+      description: error?.message,
+      // action: <ToastAction altText={"try again"}>Try again</ToastAction>,
+      variant: "destructive",
+    });
+  }, [form?.error, toast]);
+
   return (
     <div>
+      <Toaster />
       <PageTopMenu />
 
       <div className="border-t">

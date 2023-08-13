@@ -1,4 +1,5 @@
 import { type } from "os";
+import { ZodSchema } from "zod";
 
 export type IDataValue<T = Record<string, any>> = {
   id: number | string;
@@ -66,7 +67,11 @@ export type LoaderProps = {
   searchParams?: { [key: string]: string | string[] | undefined };
 };
 
-export type LoaderFunctionType<T> = (props: LoaderProps) => Promise<{
+export type LoaderFunctionType<T> = (
+  props: LoaderProps & {
+    query: string;
+  }
+) => Promise<{
   data: T[];
 }>;
 
@@ -76,7 +81,7 @@ export type SearchParamsKeys = "view" | "query";
 
 export type BasePageProps = {
   params: { slug: string };
-  searchParams?: Record<string, string>;
+  searchParams: Record<string, string>;
 };
 
 export interface ConfigType<T extends IDataValue> {
@@ -158,5 +163,11 @@ export type FormFieldType = React.InputHTMLAttributes<HTMLInputElement> & {
   value: unknown;
   defaultValue: string;
   placeholder?: string;
-  type: "Int" | "String";
+  type: "Int" | "String" | "Relation";
+  relation?: {
+    name: string;
+    fromField: string;
+    modelName: string;
+  };
+  // schema: ZodSchema<any>;
 };

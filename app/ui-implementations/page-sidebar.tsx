@@ -1,9 +1,9 @@
 import { Sidebar } from "@/components/container";
 import { MinusCircledIcon } from "@radix-ui/react-icons";
-import { useAdmin } from "../provider/hooks";
+import { useAdminState } from "../provider/state";
 
 export const PageSidebar = () => {
-  const { navigation, routing } = useAdmin();
+  const { navigation, routing } = useAdminState();
 
   return (
     <Sidebar
