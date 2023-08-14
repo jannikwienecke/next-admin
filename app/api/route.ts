@@ -1,14 +1,15 @@
 import { Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
-import { ComboboxItemProps } from "../admin-utils/base-types";
+import { ComboboxItemProps } from "../admin-ui/client/admin-utils/base-types";
 import { prisma } from "../db";
-import { LL } from "@/lib/utils";
 
 export async function GET(request: NextRequest) {
   const query = request.nextUrl.searchParams.get("query");
   const modelName = request.nextUrl.searchParams.get("model");
 
-  const model = Prisma.dmmf.datamodel.models.find((m) => m.name === modelName);
+  const model = Prisma.dmmf.datamodel.models.find(
+    (m) => m.name.toLowerCase() === modelName?.toLowerCase()
+  );
 
   const fieldsTo = model?.fields
     .filter((f) => f.type === "String")

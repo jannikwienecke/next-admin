@@ -23,8 +23,8 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import * as React from "react";
-import { DataTablePaginationProps } from "../../app/ui-implementations/admin-table-pagination";
-import { IDataValue } from "@/app/admin-utils/base-types";
+import { DataTablePaginationProps } from "../../app/admin-ui/ui/admin-table-pagination";
+import { IDataValue } from "@/app/admin-ui/client/admin-utils/base-types";
 
 interface DataTableProps<TData extends IDataValue, TValue> {
   columns: ColumnDef<TData>[];

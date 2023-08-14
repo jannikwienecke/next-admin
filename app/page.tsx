@@ -1,8 +1,6 @@
-import { loader } from "@/admin-ui/server";
-import { BasePageProps } from "./admin-utils/base-types";
-import { AdminDashboard } from "./ui-implementations/admin-page";
-
-export const revalidate = 10; // revalidate at most every hour
+import { loader } from "@/app/admin-ui/server";
+import { BasePageProps } from "./admin-ui/client/admin-utils/base-types";
+import { AdminDashboard } from "./admin-ui/ui/admin-page";
 
 export default async function Home(props: BasePageProps) {
   const { data, modelSchema } = await loader(props);

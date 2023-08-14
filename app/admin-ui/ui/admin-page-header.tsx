@@ -1,0 +1,20 @@
+import { Button } from "@/components/ui/button";
+import { useAdminState } from "../client/provider/state";
+
+export const AdminPageHeader = () => {
+  const { emiiter } = useAdminState();
+
+  return (
+    <div className="flex items-center justify-between space-y-2">
+      <div>
+        <h2 className="text-2xl font-bold tracking-tight">Welcome back!</h2>
+        <p className="text-muted-foreground">
+          Here&apos;s a list of your tasks for this month!
+        </p>
+      </div>
+      <div className="flex items-center space-x-2">
+        <Button onClick={emiiter.clickCreate}>Create New</Button>
+      </div>
+    </div>
+  );
+};

@@ -1,7 +1,7 @@
 import {
   SidebarCategoryProps,
   SidebarItemProps,
-} from "@/app/admin-utils/base-types";
+} from "@/app/admin-ui/client/admin-utils/base-types";
 import { Button } from "@/components/ui/button";
 // MAYBE NEED LATER
 // import { ScrollArea } from "@/components/ui/scroll-area";
