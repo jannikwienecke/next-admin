@@ -97,9 +97,23 @@ export interface ConfigType<T extends IDataValue> {
 export interface ConfigTypeServer<T extends IDataValue> {
   model: ModelType;
   name: ViewName;
-  data: {
-    loader: LoaderFunctionType<T>;
+
+  crud: {
+    read: {
+      loader?: LoaderFunctionType<T>;
+      orderBy?: Partial<{
+        [key in keyof T]?: "asc" | "desc";
+      }>;
+      labelKey: keyof T;
+      relationalFields?: Partial<{
+        [key in keyof T]: {
+          labelKey: string;
+        };
+      }>;
+    };
   };
+  // // key used to display the date item
+  // labelKey: keyof T;
 }
 
 export type ParentName = "All" | "App";
@@ -171,3 +185,8 @@ export type FormFieldType = React.InputHTMLAttributes<HTMLInputElement> & {
   };
   // schema: ZodSchema<any>;
 };
+
+export interface ComboboxItemProps {
+  value: number;
+  label: string;
+}

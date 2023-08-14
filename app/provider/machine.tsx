@@ -31,20 +31,10 @@ export const adminMachine = createMachine(
       },
     },
     states: {
-      idle: {
-        on: {
-          SEARCH_CHANGED: {
-            target: "ready",
-            actions: ["searchChanged"],
-          },
-        },
-      },
+      idle: {},
 
       ready: {
         on: {
-          SEARCH_CHANGED: {
-            actions: ["searchChanged"],
-          },
           // CRUD
           CRUD_CREATE: {
             target: "ready.showForm",
@@ -267,19 +257,6 @@ export const adminMachine = createMachine(
             fields: context.form?.fields || [],
             error: {
               message,
-            },
-          },
-        };
-      }),
-
-      searchChanged: assign((context, event) => {
-        return {
-          ...context,
-          control: {
-            ...context.control,
-            search: {
-              ...context.control.search,
-              value: event.data.value,
             },
           },
         };

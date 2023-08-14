@@ -16,7 +16,7 @@ export interface DataTableToolbarProps<TData> {
 export function AdminTableControl<TData>({
   table,
 }: DataTableToolbarProps<TData>) {
-  const { control, handleSearchChange } = useAdminState();
+  const { control, handleSearchChange, query } = useAdminState();
 
   const isFiltered = table.getState().columnFilters.length > 0;
 
@@ -27,7 +27,7 @@ export function AdminTableControl<TData>({
         <Input
           autoFocus
           placeholder={control.search.placeholder}
-          value={control.search.value}
+          value={query}
           onChange={handleSearchChange}
           className="h-8 w-[150px] lg:w-[250px]"
         />

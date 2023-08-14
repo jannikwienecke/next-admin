@@ -29,7 +29,6 @@ export interface Typegen0 {
       | "error.platform.invoke-action"
       | "error.platform.invoke-delete-action";
     init: "INIT_STATE";
-    searchChanged: "SEARCH_CHANGED";
   };
   eventsCausingDelays: {};
   eventsCausingGuards: {};

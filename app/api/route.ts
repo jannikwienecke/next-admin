@@ -1,6 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "../db";
 import { Prisma } from "@prisma/client";
+import { NextRequest, NextResponse } from "next/server";
+import { ComboboxItemProps } from "../admin-utils/base-types";
+import { prisma } from "../db";
+import { LL } from "@/lib/utils";
 
 export async function GET(request: NextRequest) {
   const query = request.nextUrl.searchParams.get("query");
@@ -26,10 +28,10 @@ export async function GET(request: NextRequest) {
     take: 10,
   });
 
-  return NextResponse.json(
-    colors.map((c) => ({
-      value: c.id,
-      label: c.name,
-    }))
-  );
+  const parsedResult: ComboboxItemProps[] = colors.map((c) => ({
+    value: c.id,
+    label: c.name,
+  }));
+
+  return NextResponse.json(parsedResult);
 }

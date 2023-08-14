@@ -71,13 +71,11 @@ export const useAdmin = () => {
 
   const routing = useRouting();
 
-  const { handleSearchChange } = useAdminSearch();
+  const { handleSearchChange, query } = useAdminSearch();
 
   useNotifications();
 
   const emiiter = useUiEvents();
-
-  // useServerActions();
 
   const formHandler = useAdminForm({
     onSubmit: emiiter.clickSave,
@@ -95,25 +93,23 @@ export const useAdmin = () => {
     routing,
     formHandler,
     emiiter,
+    query,
   };
 };
 
 const useAdminSearch = () => {
-  const [_, send] = SomeMachineContext.useActor();
+  const { updateQuery, query: urlQuery } = useRouting();
 
-  const { updateQuery } = useRouting();
+  const [query, setQuery] = React.useState(urlQuery);
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
 
-    send({
-      type: "SEARCH_CHANGED",
-      data: {
-        value: value,
-      },
-    });
+    setQuery(value);
 
-    debouncedSearch(() => updateQueryString(value));
+    debouncedSearch(() => {
+      updateQueryString(value);
+    });
   };
 
   const updateQueryString = React.useCallback(
@@ -137,6 +133,7 @@ const useAdminSearch = () => {
 
   return {
     handleSearchChange,
+    query,
   };
 };
 

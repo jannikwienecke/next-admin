@@ -21,7 +21,7 @@ import * as React from "react";
 import { FormFieldType } from "../admin-utils/base-types";
 
 interface ComboboxItemProps {
-  value: string;
+  value: number;
   label: string;
 }
 
@@ -38,9 +38,7 @@ function AdminRelationCombobox({ relation, ...props }: FormFieldType) {
     ? (props.defaultValue as any)
     : undefined;
 
-  LL({ defaultValue });
-
-  const [value, setValue] = React.useState(defaultValue?.label);
+  const [value, setValue] = React.useState(defaultValue?.value as number);
   const [defaultItems, setDefaultItems] = React.useState<ComboboxItemProps[]>();
   const [items, setItems] = React.useState<ComboboxItemProps[]>();
 
@@ -95,12 +93,15 @@ function AdminRelationCombobox({ relation, ...props }: FormFieldType) {
 
   const _items = items?.length === 0 ? defaultItems : items;
 
+  LL({ _items, value });
+  const labelRef = React.useRef("");
+  const currentLabel = _items?.find((item) => item.value === value)?.label;
   return (
     <>
       <Input
         {...props}
         type="hidden"
-        value={_items?.find((item) => item.label === value)?.value}
+        value={_items?.find((item) => item.value === value)?.value}
         className="col-span-3"
       />
 
@@ -112,7 +113,7 @@ function AdminRelationCombobox({ relation, ...props }: FormFieldType) {
             aria-expanded={open}
             className="justify-between col-span-3 flex w-full"
           >
-            {value ? value : "Select color..."}
+            {labelRef.current ? labelRef.current : "Select color..."}
             <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
@@ -125,8 +126,11 @@ function AdminRelationCombobox({ relation, ...props }: FormFieldType) {
             onValueChange={setQuery}
             query={query}
             onSelect={(currentValue) => {
-              setValue(currentValue === value ? "" : currentValue);
+              setValue(currentValue);
               setOpen(false);
+              labelRef.current =
+                _items?.find((item) => item.value === currentValue)?.label ??
+                "";
             }}
           />
         </PopoverContent>
@@ -144,13 +148,12 @@ const CommandBar = ({
 }: {
   onValueChange: (value: string) => void;
   query: string;
-  items?: {
-    value: string;
-    label: string;
-  }[];
-  value: string;
-  onSelect: (value: string) => void;
+  items?: ComboboxItemProps[];
+  value: number;
+  onSelect: (value: number) => void;
 }) => {
+  LL({ items });
+
   return (
     <Command>
       <CommandInput
@@ -165,17 +168,26 @@ const CommandBar = ({
       <CommandEmpty>Noting found.</CommandEmpty>
 
       <CommandGroup>
-        {items?.map((item) => (
-          <CommandItem value={item.value} key={item.value} onSelect={onSelect}>
-            {item.label}
-            <CheckIcon
-              className={cn(
-                "ml-auto h-4 w-4",
-                value === item.value ? "opacity-100" : "opacity-0"
-              )}
-            />
-          </CommandItem>
-        ))}
+        {items?.map((item) => {
+          return (
+            <CommandItem
+              key={item.value}
+              onSelect={(item) => {
+                LL(` onSelect ${item.split("||")[0]}`);
+                onSelect(+item.split("||")[0]);
+              }}
+            >
+              <span className="hidden">{item.value}||</span>
+              <span>{item.label}</span>
+              <CheckIcon
+                className={cn(
+                  "ml-auto h-4 w-4",
+                  value === item.value ? "opacity-100" : "opacity-0"
+                )}
+              />
+            </CommandItem>
+          );
+        })}
       </CommandGroup>
     </Command>
   );

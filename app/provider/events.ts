@@ -17,12 +17,6 @@ export type AdminStateEvents =
       };
     }
   | {
-      type: "SEARCH_CHANGED";
-      data: {
-        value: string;
-      };
-    }
-  | {
       type: "CRUD_CREATE";
     }
   | {
