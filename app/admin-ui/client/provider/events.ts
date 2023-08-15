@@ -2,7 +2,7 @@ import {
   ConfigTypeDictClient,
   IDataValue,
   ModelSchema,
-  ViewName,
+  TableFilterProps,
 } from "../admin-utils/base-types";
 
 export type AdminStateEvents =
@@ -13,7 +13,8 @@ export type AdminStateEvents =
         data: IDataValue[];
         config: ConfigTypeDictClient;
         modelSchema: ModelSchema;
-        view: ViewName;
+        view: string;
+        filters: TableFilterProps;
       };
     }
   | {

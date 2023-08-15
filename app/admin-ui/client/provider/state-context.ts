@@ -7,6 +7,7 @@ import {
   IDataValue,
   ModelSchema,
   SidebarCategoryProps,
+  TableFilterProps,
   ViewToggleOptionType,
 } from "../admin-utils/base-types";
 import { z } from "zod";
@@ -24,9 +25,7 @@ export interface AdminStateContextType {
     categories: SidebarCategoryProps[];
   };
   control: {
-    filters: {
-      options: FilterType[];
-    };
+    filters: TableFilterProps;
     viewToggle: {
       options: ViewToggleOptionType[];
     };
@@ -61,16 +60,14 @@ export const DEFAULT_ADMIN_STATE_CONTEXT: AdminStateContextType = {
     modelSchema: {} as ModelSchema,
   },
 
-  config: {} as ConfigTypeClient<any>,
+  config: {} as ConfigTypeClient<any, string>,
   columns: [],
   data: [],
   navigation: {
     categories: [] as SidebarCategoryProps[],
   },
   control: {
-    filters: {
-      options: [],
-    },
+    filters: [],
     viewToggle: {
       options: [],
     },

@@ -1,7 +1,4 @@
-import {
-  BasePageProps,
-  ViewName,
-} from "@/app/admin-ui/client/admin-utils/base-types";
+import { BasePageProps } from "@/app/admin-ui/client/admin-utils/base-types";
 import {
   Routing,
   redirectToView,
@@ -10,8 +7,9 @@ import { generateModelSchema } from "@/app/admin-ui/client/admin-utils/utils.ser
 import { clientConfig } from "@/app/config/index.client";
 import { serverConfig } from "@/app/config/index.server";
 import { pageLoader } from "./adapter";
+import { getTableFilters } from "./table-filters";
 
-const DEFAULT_VIEW: ViewName = "tag";
+const DEFAULT_VIEW = "tag";
 
 export const loader = async ({ searchParams, params }: BasePageProps) => {
   if (!searchParams?.view) {
@@ -48,8 +46,14 @@ export const loader = async ({ searchParams, params }: BasePageProps) => {
 
   const modelSchema = generateModelSchema({ model: config.model });
 
+  const filters = await getTableFilters({
+    clientConfig: clientConfigModel,
+    serverConfig: config,
+  });
+
   return {
     data,
     modelSchema,
+    filters,
   };
 };

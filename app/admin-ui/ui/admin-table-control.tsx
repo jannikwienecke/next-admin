@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAdminState } from "../client/provider/state";
 import { AdminTableViewOptions } from "./admin-table-view-options";
+import { AdminTableFilter } from "./admin-table-filter";
 
 export interface DataTableToolbarProps<TData> {
   table: Table<TData>;
@@ -32,12 +33,18 @@ export function AdminTableControl<TData>({
           className="h-8 w-[150px] lg:w-[250px]"
         />
 
+        {control.filters.map((f) => {
+          return (
+            <AdminTableFilter
+              key={f.accessorKey}
+              column={table.getColumn(f.accessorKey)}
+              title={f.title}
+              options={f.options}
+            />
+          );
+        })}
         {/* {table.getColumn("status") && (
-          <AdminTableFilter
-            column={table.getColumn("status")}
-            title="Status"
-            options={statuses}
-          />
+          
         )}
         {table.getColumn("priority") && (
           <AdminTableFilter

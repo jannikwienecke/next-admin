@@ -123,6 +123,7 @@ export interface ConfigTypeClient<T extends IDataValue, ModelName> {
   table: {
     columns: ColumnTypeTest<T>[];
     columnsToHide?: (keyof T)[];
+    filter: (keyof T)[];
   };
   form: {
     // fields:
@@ -188,3 +189,5 @@ export interface ComboboxItemProps {
   value: number;
   label: string;
 }
+
+export type TableFilterProps = FilterType[];

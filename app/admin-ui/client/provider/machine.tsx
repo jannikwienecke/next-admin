@@ -172,6 +172,7 @@ export const adminMachine = createMachine(
           },
           control: {
             ...context.control,
+            filters: event.data.filters,
             search: {
               ...context.control.search,
               value: query,

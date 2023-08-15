@@ -43,7 +43,10 @@ export const generateColumns = <T extends IDataValue>({
       return columnType;
     });
 
-  const allColumns = [...customColumns, ...baseColumnsTransformed]
+  const allColumns: ColumnDef<any>[] = [
+    ...customColumns,
+    ...baseColumnsTransformed,
+  ]
     .filter((column) => !columnsToHide.includes(column.accessorKey as string))
 
     // sort by priority
@@ -60,6 +63,35 @@ export const generateColumns = <T extends IDataValue>({
     .map((columnConfig) => {
       return {
         accessorKey: columnConfig.accessorKey,
+
+        filterFn: (row, id, filterValue) => {
+          const col = baseColumns.find((c) => c.name === id);
+
+          if (!col) throw new Error("Column not found");
+          if (col?.kind !== "object") {
+            console.log({ id });
+
+            const value = row.original[id];
+            console.log({ value });
+
+            console.log(
+              filterValue.map((f: any) => f?.toString()?.toLowerCase())
+            );
+            console.log(" ");
+
+            return filterValue
+              .map((f: any) => f?.toString()?.toLowerCase())
+              .includes(value?.toString()?.toLowerCase());
+          } else {
+            const relationFromField = col?.relationFromFields?.[0];
+
+            if (!relationFromField) throw new Error("Relation not found");
+
+            const value = row.original[relationFromField];
+
+            return filterValue.includes(value?.toString()?.toLowerCase());
+          }
+        },
         header: ({ column }: HeaderContext<any, any>) => (
           <AdminTableColumnHeader
             sorted={column.getIsSorted()}
@@ -113,7 +145,7 @@ export const generateColumns = <T extends IDataValue>({
       };
     });
 
-  return [checkboxColumn as ColumnDef<T>, ...allColumns];
+  return [checkboxColumn as ColumnDef<T>, ...(allColumns as ColumnDef<T>[])];
 };
 
 const RelationalFieldWrapper = ({

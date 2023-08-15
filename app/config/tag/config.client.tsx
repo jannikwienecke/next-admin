@@ -8,30 +8,6 @@ import { ColorCell } from "./custom-components";
 import { TargetIcon } from "@radix-ui/react-icons";
 import { prisma } from "@/app/db";
 
-// const columns: ColumnType<TaskType>[] = [
-//   {
-//     accessorKey: "id",
-//     title: "Task",
-//     // cell: (value) => <div className="w-[80px]">{value.id}</div>,
-//   },
-//   {
-//     accessorKey: "title",
-//     title: "Title",
-//     canSort: true,
-//     canHide: true,
-//   },
-//   {
-//     accessorKey: "status",
-//     title: "Status",
-//     // cell: StatusCell,
-//   },
-//   {
-//     accessorKey: "priority",
-//     title: "Priority",
-//     // cell: PriorityCell,
-//   },
-// ];
-
 const columns: ColumnTypeTest<TagInterface>[] = [
   {
     title: "Color",
@@ -51,6 +27,7 @@ export const clientConfig: ConfigTypeClient<TagInterface, keyof typeof prisma> =
     table: {
       columns,
       columnsToHide: ["colorId", "AcitivityTag"],
+      filter: ["Color", "label"],
     },
     form: {
       fieldToHide: ["AcitivityTag", "colorId"],

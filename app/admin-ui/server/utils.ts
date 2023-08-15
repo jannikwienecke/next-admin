@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { ConfigTypeDictServer } from "../client/admin-utils/base-types";
 
 export const getConfigByView = (
@@ -9,4 +10,10 @@ export const getConfigByView = (
   if (!config) throw new Error(`Config for view "${viewName}" not found`);
 
   return config;
+};
+
+export const getPrismaModelSchema = (schema: typeof Prisma, model: string) => {
+  return schema.dmmf.datamodel.models.find((prismaModel) => {
+    return prismaModel.name.toLowerCase() === model.toLowerCase();
+  });
 };

@@ -1,9 +1,12 @@
 "use client";
 
 import React from "react";
-import { IDataValue, ModelSchema } from "../client/admin-utils/base-types";
 import { clientConfig } from "../../config/index.client";
-import { useAdmin } from "../client/provider/hooks";
+import {
+  IDataValue,
+  ModelSchema,
+  TableFilterProps,
+} from "../client/admin-utils/base-types";
 import {
   StateMachineProvider,
   StateProvider,
@@ -13,11 +16,11 @@ import { AdminFormSheet } from "./admin-form-sheet";
 import { AdminLayout } from "./admin-layout";
 import { AdminPageHeader } from "./admin-page-header";
 import { AdminTable } from "./admin-table";
-import { revalidatePath, revalidateTag } from "next/cache";
 
 export const AdminDashboard = (props: {
   data: IDataValue[];
   modelSchema: ModelSchema;
+  filters: TableFilterProps;
 }) => {
   return (
     <StateMachineProvider>
@@ -28,7 +31,11 @@ export const AdminDashboard = (props: {
   );
 };
 
-const AdminPage = (props: { data: IDataValue[]; modelSchema: ModelSchema }) => {
+const AdminPage = (props: {
+  data: IDataValue[];
+  modelSchema: ModelSchema;
+  filters: TableFilterProps;
+}) => {
   const { send, data, columns, routing } = useAdminState();
   const { view, query } = routing;
 
@@ -41,9 +48,10 @@ const AdminPage = (props: { data: IDataValue[]; modelSchema: ModelSchema }) => {
         query,
         data: props.data,
         view,
+        filters: props.filters,
       },
     });
-  }, [props.data, props.modelSchema, query, send, view]);
+  }, [props.data, props.filters, props.modelSchema, query, send, view]);
 
   return (
     <AdminLayout>
