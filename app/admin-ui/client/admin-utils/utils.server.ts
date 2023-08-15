@@ -1,12 +1,14 @@
-import { Prisma } from "@prisma/client";
+import { PRODVIDER } from "../..";
 import { ModelSchema } from "./base-types";
+
+const { schema } = PRODVIDER.prisma;
 
 export const generateModelSchema = ({
   model,
 }: {
   model: string;
 }): ModelSchema => {
-  const config = Prisma.dmmf.datamodel.models.find((prismaModel) => {
+  const config = schema.dmmf.datamodel.models.find((prismaModel) => {
     return prismaModel.name.toLowerCase() === model.toLowerCase();
   });
 

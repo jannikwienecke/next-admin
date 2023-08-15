@@ -1,9 +1,9 @@
 "use server";
 
-import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { serverConfig } from "../../config/index.server";
-import { prisma } from "../../db";
+import { crud, generateDataObject, getIdFieldType } from "./adapter";
+import { getConfigByView } from "./utils";
 
 type Action = {
   name: "create" | "edit" | "delete";
@@ -16,8 +16,7 @@ type ServerEventsProps = {
 };
 
 export async function serverAction(props: ServerEventsProps) {
-  const { action, viewName } = props;
-  const config = Object.values(serverConfig).find((c) => c.name == viewName);
+  const { action } = props;
 
   const actionFn = ACTION_DICT[action.name];
 
@@ -33,137 +32,43 @@ export async function serverAction(props: ServerEventsProps) {
 
 const _create = async ({ action, viewName }: ServerEventsProps) => {
   const { id, ...rest } = action.data || {};
-  const config = Object.values(serverConfig).find((c) => c.name == viewName);
-  const fields = Prisma.dmmf.datamodel.models.find(
-    (m) => m.name.toLowerCase() == config?.model.toLowerCase()
-  );
-  const model = config?.model;
+  const config = getConfigByView(serverConfig, viewName);
 
-  if (!model) throw new Error(`Model "${model}" not found`);
-
-  const dataToInsert = fields?.fields.reduce((p, c) => {
-    if (c.kind === "object") {
-      return p;
-    }
-
-    const value = rest[c.name];
-    const isRequired = c.isRequired;
-
-    if (c.name === "id") {
-      return p;
-    }
-
-    if (!isRequired && !value) {
-      return p;
-    }
-
-    const field = fields.fields.find(
-      (f) => f.relationFromFields?.[0] === c.name
-    );
-
-    if (field) {
-      return {
-        ...p,
-        [field.name]: {
-          connect: {
-            id: c.type === "Int" ? +value : value,
-          },
-        },
-      };
-    }
-
-    if (isRequired && !value) {
-      throw new Error(`Field "${c.name}" is required`);
-    }
-
-    return {
-      ...p,
-      [c.name]: value,
-    };
-  }, {} as any);
-
-  await (prisma[model as any] as any).create({
-    data: dataToInsert,
+  const data = generateDataObject({
+    config,
+    actionData: rest,
   });
+
+  await crud.create({ data, model: config.model });
 };
 
 const _delete = async ({ action, viewName }: ServerEventsProps) => {
-  const config = Object.values(serverConfig).find((c) => c.name == viewName);
-  const model = config?.model as any;
-
-  const fields =
-    Prisma.dmmf.datamodel.models.find((m) => m.name == config?.model)?.fields ||
-    [];
-
-  const idField = fields.find((f) => f.name === "id");
-
-  if (!model) throw new Error(`Model "${model}" not found`);
-
+  const config = getConfigByView(serverConfig, viewName);
   const { id } = action.data || {};
 
-  await (prisma[model] as any).delete({
-    where: {
-      id: idField?.type === "Int" ? +id : id,
-    },
+  const idFieldType = getIdFieldType({ config });
+
+  await crud.delete({
+    id: idFieldType === "int" ? +id : id,
+    model: config.model,
   });
 };
 
 const _edit = async ({ action, viewName }: ServerEventsProps) => {
   const { id, ...rest } = action.data || {};
-  const config = Object.values(serverConfig).find((c) => c.name == viewName);
-  const fields = Prisma.dmmf.datamodel.models.find(
-    (m) => m.name.toLowerCase() == config?.model.toLowerCase()
-  );
-  const model = config?.model;
+  const config = getConfigByView(serverConfig, viewName);
 
-  if (!model) throw new Error(`Model "${model}" not found`);
+  const idFieldType = getIdFieldType({ config });
 
-  const dataToUpdate = fields?.fields.reduce((p, c) => {
-    if (c.kind === "object") {
-      return p;
-    }
+  const data = generateDataObject({
+    config,
+    actionData: rest,
+  });
 
-    const value = rest[c.name];
-    const isRequired = c.isRequired;
-
-    if (c.name === "id") {
-      return p;
-    }
-
-    if (!isRequired && !value) {
-      return p;
-    }
-
-    const field = fields.fields.find(
-      (f) => f.relationFromFields?.[0] === c.name
-    );
-
-    if (field) {
-      return {
-        ...p,
-        [field.name]: {
-          connect: {
-            id: c.type === "Int" ? +value : value,
-          },
-        },
-      };
-    }
-
-    if (isRequired && !value) {
-      throw new Error(`Field "${c.name}" is required`);
-    }
-
-    return {
-      ...p,
-      [c.name]: value,
-    };
-  }, {} as any);
-
-  await (prisma[model as any] as any).update({
-    where: {
-      id: id ? +id : undefined,
-    },
-    data: dataToUpdate,
+  await crud.update({
+    id: idFieldType === "int" ? +id : id,
+    data,
+    model: config.model,
   });
 };
 
