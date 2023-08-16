@@ -1,24 +1,3 @@
-
--- drop all tables
-
-DROP TABLE "public"."Tag" CASCADE;
-DROP TABLE "public"."User" CASCADE;
-DROP TABLE "public"."Location" CASCADE;
-DROP TABLE "public"."AcitivityTag" CASCADE;
-DROP TABLE "public"."OrderActivity" CASCADE;
-DROP TABLE "public"."Color" CASCADE;
-DROP TABLE "public"."AcitivityDescription" CASCADE;
-DROP TABLE "public"."DefaultVacationActivity" CASCADE;
-DROP TABLE "public"."VacationDescription" CASCADE;
-DROP TABLE "public"."Customer" CASCADE;
-DROP TABLE "public"."Service" CASCADE;
-DROP TABLE "public"."VacationServices" CASCADE;
-DROP TABLE "public"."Order" CASCADE;
-DROP TABLE "public"."OrderActivityEvents" CASCADE;
-DROP TABLE "public"."Hotel" CASCADE;
-DROP TABLE "public"."Room" CASCADE;
-DROP TABLE "public"."Contact" CASCADE;
-
 CREATE TABLE "public"."Color" (
     "id" SERIAL,
     "name" text  NOT NULL ,
@@ -122,6 +101,30 @@ CREATE TABLE "public"."Hotel" (
     FOREIGN KEY ("contactId") REFERENCES "public"."Contact"("id") ON UPDATE CASCADE
 );
 
+-- product === vacationDescription
+CREATE TABLE "public"."VacationDescription" (
+    "id" SERIAL,
+    "name" text  NOT NULL,
+    "description" text,
+    "image_url" text,
+    "slug" text,
+    "permalink" text,
+    "date_created" text,
+    "date_created_gmt" text,
+    "date_modified" text,
+    "date_modified_gmt" text,
+    "type" text,
+    "status" text,
+    "price" text,
+    "is_parent" boolean NOT NULL DEFAULT false,
+    -- "parent_id" integer NULL,
+
+    PRIMARY KEY ("id"),
+    "locationId" integer  NULL,
+    FOREIGN KEY ("locationId") REFERENCES "public"."Location"("id") ON UPDATE CASCADE
+    -- FOREIGN KEY ("parent_id") REFERENCES "public"."VacationDescription"("id") ON UPDATE CASCADE 
+);
+
 CREATE TABLE "public"."VacationHotel"(
     "id" SERIAL,
     "vacation_id" integer  NOT NULL ,
@@ -152,34 +155,12 @@ CREATE TABLE "public"."AcitivityTag" (
     FOREIGN KEY ("activityDescriptionId") REFERENCES "public"."AcitivityDescription"("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
--- product === vacationDescription
-CREATE TABLE "public"."VacationDescription" (
-    "id" SERIAL,
-    "name" text  NOT NULL,
-    "description" text,
-    "image_url" text,
-    "slug" text,
-    "permalink" text,
-    "date_created" text,
-    "date_created_gmt" text,
-    "date_modified" text,
-    "date_modified_gmt" text,
-    "type" text,
-    "status" text,
-    "price" text,
-    "is_parent" boolean NOT NULL DEFAULT false,
-    -- "parent_id" integer NULL,
 
-    PRIMARY KEY ("id"),
-    "locationId" integer  NULL,
-    FOREIGN KEY ("locationId") REFERENCES "public"."Location"("id") ON UPDATE CASCADE
-    -- FOREIGN KEY ("parent_id") REFERENCES "public"."VacationDescription"("id") ON UPDATE CASCADE 
-);
 
 -- alter table -> add date_imported
 ALTER TABLE "public"."VacationDescription" ADD COLUMN "date_imported" text NOT NULL DEFAULT '';
-ALTER TABLE "public"."VacationDescription" DROP CONSTRAINT "VacationDescription_name_key";
-ALTER TABLE "public"."VacationDescription" ADD COLUMN "is_parent" boolean NOT NULL DEFAULT false;
+-- ALTER TABLE "public"."VacationDescription" DROP CONSTRAINT "VacationDescription_name_key";
+-- ALTER TABLE "public"."VacationDescription" ADD COLUMN "is_parent" boolean NOT NULL DEFAULT false;
 ALTER TABLE "public"."VacationDescription" ADD COLUMN "parent_id" integer NULL;
 ALTER TABLE "public"."VacationDescription" ADD FOREIGN KEY ("parent_id") REFERENCES "public"."VacationDescription"("id") ON UPDATE CASCADE;
 
@@ -252,8 +233,8 @@ CREATE TABLE "public"."Order" (
 -- the order id which can be in multiple lines
     order_id integer  NOT NULL,
 
-    hotel_id integer;
-    room_id integer;
+    hotel_id integer,
+    room_id integer,
 
     -- user
     "user_id" integer  NOT NULL ,
@@ -388,12 +369,12 @@ CREATE TABLE "public"."OrderTag" (
 );
 
 -- delete colorId from OrderTag
-ALTER TABLE "public"."OrderTag" DROP COLUMN "colorId";
-ALTER TABLE "public"."OrderTag" ADD COLUMN "color" text NOT NULL DEFAULT '';
+-- ALTER TABLE "public"."OrderTag" DROP COLUMN "colorId";
+-- ALTER TABLE "public"."OrderTag" ADD COLUMN "color" text NOT NULL DEFAULT '';
 
 
-INSERT INTO "public"."OrderTag" ("label", "orderId", "colorId") VALUES ('testing', 1444, 1);
-INSERT INTO "public"."OrderTag" ("label", "orderId", "colorId") VALUES ('testing2', 1444, 2);
+-- INSERT INTO "public"."OrderTag" ("label", "orderId", "colorId") VALUES ('testing', 1444, 1);
+-- INSERT INTO "public"."OrderTag" ("label", "orderId", "colorId") VALUES ('testing2', 1444, 2);
 
 
 CREATE TABLE "public"."CustomView" (

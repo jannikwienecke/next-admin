@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { clientConfig } from "../../config/index.client";
+
 import {
   IDataValue,
   ModelSchema,
@@ -16,6 +16,7 @@ import { AdminFormSheet } from "./admin-form-sheet";
 import { AdminLayout } from "./admin-layout";
 import { AdminPageHeader } from "./admin-page-header";
 import { AdminTable } from "./admin-table";
+import { clientConfig } from "@/app/index.client";
 
 export const AdminDashboard = (props: {
   data: IDataValue[];

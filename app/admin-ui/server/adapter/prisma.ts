@@ -24,6 +24,7 @@ const getFieldsToInclude = ({
       const hide = columnsToHide?.includes(field.name);
       const isObject = field.kind === "object";
       if (!isObject || hide) return acc;
+      if (field.isList) return acc;
 
       return {
         ...acc,
@@ -43,6 +44,7 @@ export const prismaLoader = async ({
   clientConfig: ConfigTypeClient<any, string>;
 }) => {
   const fieldsToInclude = getFieldsToInclude({ config, clientConfig });
+
   const crudRead = config.crud?.read;
 
   const orderBy = crudRead.orderBy || {
@@ -51,9 +53,13 @@ export const prismaLoader = async ({
 
   const _id = query ? (isNaN(+query) ? undefined : +query) : undefined;
 
+  const include = Object.keys(fieldsToInclude).length
+    ? fieldsToInclude
+    : undefined;
+
   const resultData = await (client[config.model as any] as any)?.findMany({
     orderBy,
-    include: fieldsToInclude,
+    include,
     where: {
       id: {
         equals: _id,
@@ -90,8 +96,14 @@ export const parseDefaultLoaderData = ({
       const _item = item as any;
       const labelKey = crudRead.relationalFields?.[key]?.labelKey || "";
 
+      const val = _item[key];
+
+      if (Array.isArray(val)) {
+        return acc;
+      }
+
       const value =
-        _item[labelKey] ||
+        _item[key][labelKey] ||
         _item[key]?.name ||
         _item[key]?.label ||
         _item[key]?.text;

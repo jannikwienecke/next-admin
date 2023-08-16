@@ -1,6 +1,7 @@
 import { PRODVIDER } from "..";
 import {
   ConfigTypeClient,
+  ConfigTypeDictClient,
   ConfigTypeServer,
   FilterOptionType,
   IDataValue,
@@ -18,6 +19,7 @@ export const getTableFilters = async ({
   serverConfig: ConfigTypeServer<any, string>;
 }) => {
   const model = serverConfig.model;
+
   const filtersPromises = clientConfig.table.filter.map(async (f) => {
     const filterName = f as string;
 
@@ -35,7 +37,7 @@ export const getTableFilters = async ({
         select: {
           [fieldDef.name]: true,
         },
-        take: 100,
+        take: 500,
       });
 
       vals = labels.map((l: any) => ({
@@ -43,17 +45,35 @@ export const getTableFilters = async ({
         value: l[fieldDef.name],
       }));
     } else {
+      const labelKeyRelationField =
+        serverConfig.crud.read.relationalFields?.[filterName]?.labelKey;
+
       const colors = (await (
         client[filterName.toLowerCase() as any] as any
       )?.findMany({
+        select: {
+          id: true,
+          [labelKeyRelationField || ""]: true,
+        },
         take: 100,
       })) as IDataValue[] | undefined;
 
       vals =
-        colors?.map((c) => ({
-          label: (c as any)?.name || (c as any)?.label,
-          value: c.id.toString(),
-        })) || [];
+        colors?.map((c) => {
+          const label = labelKeyRelationField
+            ? c?.[labelKeyRelationField]
+            : (c as any)?.label || (c as any)?.name;
+
+          if (!label)
+            throw new Error(
+              `Please specify a labelKey for the relational field ${filterName}`
+            );
+
+          return {
+            label: label,
+            value: c.id.toString(),
+          };
+        }) || [];
     }
 
     const options: FilterOptionType[] =

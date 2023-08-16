@@ -3,9 +3,16 @@ generator client {
   previewFeatures = ["fullTextSearch", "fullTextIndex"]
 }
 
+// datasource db {
+//   provider = "postgresql"
+//   url      = "postgres://admin:ztPs6uLfxoX2@ep-fragrant-base-380181-pooler.eu-central-1.aws.neon.tech/neondb?pool_timeout=20&connection_limit=10&connect_timeout=20&pgbouncer=true"
+// }
+
+// DATABASE_URL="postgresql://postgres:testpass123@localhost:6500/mydb?schema=public"
+// ~ docker run -d -e POSTGRES_DB=db -e POSTGRES_PASSWORD=admin -e POSTGRES_USER=postgres -p "5432:5432" postgres
 datasource db {
   provider = "postgresql"
-  url      = "postgres://admin:ztPs6uLfxoX2@ep-fragrant-base-380181-pooler.eu-central-1.aws.neon.tech/neondb?pool_timeout=20&connection_limit=10&connect_timeout=20&pgbouncer=true"
+  url      = "postgresql://postgres:admin@localhost:5432/db?schema=public"
 }
 
 model AcitivityDescription {

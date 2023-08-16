@@ -27,6 +27,7 @@ export const generateModelSchema = ({
           isId: field.isId,
           type: field.type,
           relationFromFields: field.relationFromFields || [],
+          isList: field.isList,
         };
       }) || [],
   };

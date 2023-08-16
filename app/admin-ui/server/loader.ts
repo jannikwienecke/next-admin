@@ -4,10 +4,10 @@ import {
   redirectToView,
 } from "@/app/admin-ui/client/admin-utils/routing";
 import { generateModelSchema } from "@/app/admin-ui/client/admin-utils/utils.server";
-import { clientConfig } from "@/app/config/index.client";
-import { serverConfig } from "@/app/config/index.server";
 import { pageLoader } from "./adapter";
 import { getTableFilters } from "./table-filters";
+import { serverConfig } from "@/app/index.server";
+import { clientConfig } from "@/app/index.client";
 
 const DEFAULT_VIEW = "tag";
 
@@ -21,7 +21,7 @@ export const loader = async ({ searchParams, params }: BasePageProps) => {
   const view = searchParams?.view;
 
   const config = Object.values(serverConfig).find(
-    (config) => config.name === view
+    (config) => config.name.toLowerCase() === view.toLowerCase()
   );
 
   if (!config) {

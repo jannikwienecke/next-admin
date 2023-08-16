@@ -89,10 +89,7 @@ export interface ConfigType<T extends IDataValue> {
   };
 }
 
-export interface ConfigTypeServer<
-  T extends IDataValue,
-  ModelName extends string | symbol
-> {
+export interface ConfigTypeServer<T extends IDataValue, ModelName> {
   model: ModelName;
   name: string;
 
@@ -119,6 +116,7 @@ export type ParentName = "All" | "App";
 export interface ConfigTypeClient<T extends IDataValue, ModelName> {
   model: ModelName;
   name: string;
+  label: string;
   baseView?: string;
   table: {
     columns: ColumnTypeTest<T>[];
@@ -151,6 +149,7 @@ export interface ColumnSchema {
   isId: boolean;
   type: string;
   relationFromFields: string[];
+  isList: boolean;
 }
 
 export type ModelSchema = {

@@ -1,5 +1,11 @@
 import { Prisma } from "@prisma/client";
-import { ConfigTypeDictServer } from "../client/admin-utils/base-types";
+import {
+  ConfigTypeClient,
+  ConfigTypeDictClient,
+  ConfigTypeDictServer,
+  ConfigTypeServer,
+  IDataValue,
+} from "../client/admin-utils/base-types";
 
 export const getConfigByView = (
   serverConfig: ConfigTypeDictServer,
@@ -16,4 +22,40 @@ export const getPrismaModelSchema = (schema: typeof Prisma, model: string) => {
   return schema.dmmf.datamodel.models.find((prismaModel) => {
     return prismaModel.name.toLowerCase() === model.toLowerCase();
   });
+};
+
+export const createServerConfig = <T extends string | symbol | number>(
+  configItems: ConfigTypeServer<any, T>[]
+) => {
+  return configItems.reduce((acc, config) => {
+    return {
+      ...acc,
+      [config.name]: config,
+    };
+  }, {} as ConfigTypeDictServer);
+};
+
+export const createClientConfig = <T extends string | symbol | number>(
+  configItems: ConfigTypeClient<any, T>[]
+) => {
+  return configItems.reduce((acc, config) => {
+    return {
+      ...acc,
+      [config.name]: config,
+    };
+  }, {} as ConfigTypeDictClient);
+};
+
+export const createServerView = <T extends IDataValue, ModelName>(
+  props: ConfigTypeServer<T, ModelName>
+) => {
+  return props;
+};
+
+export const createClientView = <T extends IDataValue, ModelName>(
+  props: ConfigTypeClient<T, ModelName>
+) => {
+  return {
+    ...props,
+  };
 };

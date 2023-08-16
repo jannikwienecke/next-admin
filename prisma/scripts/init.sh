@@ -1,0 +1,1 @@
+cat ./prisma/init.sql | docker exec -i 0708291287fb  psql -U postgres -d db

@@ -1,9 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { serverConfig } from "../../config/index.server";
 import { crud, generateDataObject, getIdFieldType } from "./adapter";
 import { getConfigByView } from "./utils";
+import { serverConfig } from "@/app/index.server";
 
 type Action = {
   name: "create" | "edit" | "delete";

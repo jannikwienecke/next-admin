@@ -27,8 +27,10 @@ export const generateColumns = <T extends IDataValue>({
   // filter if is in custom columns -> not in base columns
   const baseColumnsTransformed = baseColumns
     .filter((baseColumn) => {
-      return !customColumns.find(
-        (customColumn) => customColumn.accessorKey === baseColumn.name
+      return (
+        !customColumns.find(
+          (customColumn) => customColumn.accessorKey === baseColumn.name
+        ) && baseColumn.isList === false
       );
     })
     .map((columnSchema) => {
@@ -69,15 +71,7 @@ export const generateColumns = <T extends IDataValue>({
 
           if (!col) throw new Error("Column not found");
           if (col?.kind !== "object") {
-            console.log({ id });
-
             const value = row.original[id];
-            console.log({ value });
-
-            console.log(
-              filterValue.map((f: any) => f?.toString()?.toLowerCase())
-            );
-            console.log(" ");
 
             return filterValue
               .map((f: any) => f?.toString()?.toLowerCase())
@@ -225,7 +219,7 @@ export const generateNavigationCategories = ({
       items: allItemsOfParent.map(([x, y]) => {
         return {
           icon: y.navigation.icon,
-          label: y.model,
+          label: y.label,
           active: false,
           name: y.name,
           onClick: () => {

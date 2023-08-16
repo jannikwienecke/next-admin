@@ -1,0 +1,1 @@
+ docker exec -it 0708291287fb psql -d db -U postgres
