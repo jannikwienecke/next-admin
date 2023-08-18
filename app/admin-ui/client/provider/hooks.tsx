@@ -167,12 +167,24 @@ const useUiEvents = () => {
     send({ type: "CRUD_DELETE", data: { row } });
   };
 
+  const clickCreateRelationalValue = (props: {
+    modelName: string;
+    formState: Record<string, any>;
+    value: string;
+  }) => {
+    send({
+      type: "CRUD_CLICK_CREATE_RELATIONAL_VALUE",
+      data: props,
+    });
+  };
+
   return {
     clickCreate,
     clickEdit,
     clickCancel,
     clickSave,
     clickDelete,
+    clickCreateRelationalValue,
   };
 };
 
@@ -200,10 +212,10 @@ export const useAdminForm = ({
 }: {
   onSubmit: (data: Record<string, string>) => void;
 }) => {
-  const [state, send] = SomeMachineContext.useActor();
+  const [state, _] = SomeMachineContext.useActor();
 
   const f = state.context.form;
-  const fields = f?.fields || [];
+  const fields = React.useMemo(() => f?.fields || [], [f?.fields]);
 
   const form = useForm({
     // resolver: zodResolver(formSchema),
@@ -212,6 +224,10 @@ export const useAdminForm = ({
       return acc;
     }, {} as any),
   });
+
+  React.useEffect(() => {
+    form.reset({});
+  }, [form, state.context.form?.activeRelationalConfigs?.length]);
 
   const submitForm = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -239,6 +255,14 @@ export const useAdminForm = ({
 
     onSubmit(values_);
   };
+
+  React.useEffect(() => {
+    // after fields change -> reset the form with the new default values
+    fields.forEach((f) => {
+      if (!f.defaultValue) return;
+      form.setValue(f.name, f.defaultValue);
+    });
+  }, [fields, form]);
 
   return {
     form,

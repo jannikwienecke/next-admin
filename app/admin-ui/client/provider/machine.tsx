@@ -1,5 +1,5 @@
 import { LL } from "@/lib/utils";
-import { assign, createMachine } from "xstate";
+import { actions, assign, createMachine } from "xstate";
 import { serverAction } from "../../server/actions";
 import {
   generateColumns,
@@ -11,9 +11,11 @@ import {
   AdminStateContextType,
   DEFAULT_ADMIN_STATE_CONTEXT,
 } from "./state-context";
+import { title } from "process";
 
 export const adminMachine = createMachine(
   {
+    predictableActionArguments: true,
     tsTypes: {} as import("./machine.typegen").Typegen0,
     schema: {
       context: {} as AdminStateContextType,
@@ -27,6 +29,10 @@ export const adminMachine = createMachine(
       INIT_STATE: {
         target: "ready",
         actions: ["init"],
+      },
+
+      UPDATE_DATA: {
+        actions: ["updateData"],
       },
     },
     states: {
@@ -85,13 +91,28 @@ export const adminMachine = createMachine(
                     target: "#admin-machine.ready.showForm.saving",
                     actions: ["crudSave"],
                   },
+                  CRUD_CLICK_CREATE_RELATIONAL_VALUE: {
+                    target:
+                      "#admin-machine.ready.showForm.editing.showRelationalForm",
+                    actions: ["crudCreateRelational"],
+                  },
+                },
+                states: {
+                  showRelationalForm: {
+                    on: {
+                      CRUD_CANCEL: {
+                        target: "#admin-machine.ready.showForm.editing",
+                        actions: ["resetToOriginForm"],
+                      },
+                    },
+                  },
                 },
               },
               saving: {
                 invoke: {
                   id: "invoke-action",
-                  src: async (context, event) => {
-                    LL("invoke-action", { context, event });
+                  src: async (context, event, x) => {
+                    LL("invoke-action", { context, event, x });
 
                     if (!context.state.activeAction)
                       throw new Error("No action");
@@ -107,12 +128,22 @@ export const adminMachine = createMachine(
                         },
                         name: context.state.activeAction,
                       },
-                      viewName: context.config.name,
+                      viewName:
+                        context.form?.activeRelationalConfigs?.[0]?.name ||
+                        context.config.name,
                     });
                   },
-                  onDone: {
-                    target: "#admin-machine.ready",
-                  },
+                  onDone: [
+                    {
+                      cond: (c) =>
+                        c.form?.activeRelationalConfigs?.length === 1,
+                      target: "#admin-machine.ready.showForm.editing",
+                      actions: ["resetToOriginForm"],
+                    },
+                    {
+                      target: "#admin-machine.ready",
+                    },
+                  ],
                   onError: {
                     target: "editing",
                     actions: ["crudSaveError"],
@@ -145,7 +176,7 @@ export const adminMachine = createMachine(
 
         const columnsToRender = generateColumns({
           customColumns: activeClient.table.columns,
-          baseColumns: modelSchema.columns,
+          baseColumns: modelSchema[activeClient.model]?.columns,
           columnsToHide: (activeClient.table.columnsToHide || []) as string[],
         });
 
@@ -184,6 +215,17 @@ export const adminMachine = createMachine(
             description: "",
             fields,
           },
+        };
+      }),
+
+      updateData: assign((context, event) => {
+        return {
+          ...context,
+          internal: {
+            ...context.internal,
+            data: event.data.data,
+          },
+          data: event.data.data,
         };
       }),
 
@@ -230,6 +272,49 @@ export const adminMachine = createMachine(
         };
       }),
 
+      crudCreateRelational: assign((context, event) => {
+        const config = Object.values(context.internal.config).find(
+          (c) => c.model.toLowerCase() === event.data.modelName.toLowerCase()
+        );
+
+        if (!config) {
+          return {
+            ...context,
+            form: {
+              ...context.form,
+              error: {
+                message: `No Config was found for the model: "${event.data.modelName}"`,
+              },
+            },
+          };
+        }
+
+        const acitveConfigsForModel =
+          context.form?.activeRelationalConfigs || [];
+        acitveConfigsForModel.push(config);
+
+        return {
+          ...context,
+          form: {
+            ...context.form,
+            title: "Create row Relationa",
+            activeRelationalConfigs: acitveConfigsForModel,
+            state: event.data.formState,
+            fields: generateFormFields({
+              modelSchema: context.internal.modelSchema,
+              activeRecord: undefined,
+              config,
+              defaultValueLabelKey: event.data.value,
+            }),
+          },
+          state: {
+            ...context.state,
+            activeRow: undefined,
+            activeAction: "create" as const,
+          },
+        };
+      }),
+
       crudDelete: assign((context, event) => {
         const row = event.data.row;
 
@@ -246,7 +331,7 @@ export const adminMachine = createMachine(
             ...context.form,
             title: context.form?.title || "",
             fields: context.form?.fields || [],
-            state: event.data.formState,
+            // state: event.data.formState,
             error: undefined,
           },
         };
@@ -263,6 +348,22 @@ export const adminMachine = createMachine(
             error: {
               message,
             },
+          },
+        };
+      }),
+
+      resetToOriginForm: assign((c) => {
+        return {
+          ...c,
+          form: {
+            ...c.form,
+            activeRelationalConfigs: undefined,
+            fields: generateFormFields({
+              modelSchema: c.internal.modelSchema,
+              // activeRecord: undefined,
+              config: c.config,
+              defaultFormState: c.form?.state,
+            }),
           },
         };
       }),

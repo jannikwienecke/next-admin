@@ -14,6 +14,7 @@ export default async function Home(props: BasePageProps) {
   sNames.forEach((name) => {
     if (!cNames.includes(name)) {
       const message = `Server config has a key that is not in client config: "${name}"`;
+
       throw new Error(message);
     }
   });

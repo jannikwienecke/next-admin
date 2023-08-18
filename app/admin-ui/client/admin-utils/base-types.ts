@@ -118,6 +118,7 @@ export interface ConfigTypeClient<T extends IDataValue, ModelName> {
   name: string;
   label: string;
   baseView?: string;
+  labelKey: keyof T;
   table: {
     columns: ColumnTypeTest<T>[];
     columnsToHide?: (keyof T)[];
@@ -153,7 +154,9 @@ export interface ColumnSchema {
 }
 
 export type ModelSchema = {
-  columns: ColumnSchema[];
+  [model: string]: {
+    columns: ColumnSchema[];
+  };
 };
 
 export interface SidebarItemProps {

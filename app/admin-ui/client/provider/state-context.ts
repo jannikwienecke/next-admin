@@ -15,7 +15,7 @@ import { z } from "zod";
 export interface AdminStateContextType {
   internal: {
     config: ConfigTypeDictClient;
-    data: IDataValue[];
+    data: IDataValue[] | undefined;
     modelSchema: ModelSchema;
   };
   config: ConfigTypeClient<any, string>;
@@ -39,7 +39,8 @@ export interface AdminStateContextType {
     description?: string;
     fields?: FormFieldType[];
     schema?: Record<string, z.ZodType<any, any, any>>;
-    // state?: Record<string, any>;
+    activeRelationalConfigs?: ConfigTypeClient<any, string>[];
+    state?: Record<string, any>;
     error?:
       | {
           message: string;
@@ -55,7 +56,7 @@ export interface AdminStateContextType {
 
 export const DEFAULT_ADMIN_STATE_CONTEXT: AdminStateContextType = {
   internal: {
-    data: [],
+    data: undefined,
     config: {} as ConfigTypeDictClient,
     modelSchema: {} as ModelSchema,
   },
@@ -81,6 +82,7 @@ export const DEFAULT_ADMIN_STATE_CONTEXT: AdminStateContextType = {
     description: "",
     fields: [],
     error: undefined,
+    state: undefined,
   },
   state: {
     activeRow: undefined,

@@ -8,17 +8,17 @@ export const generateModelSchema = ({
 }: {
   model: string;
 }): ModelSchema => {
-  const config = schema.dmmf.datamodel.models.find((prismaModel) => {
-    return prismaModel.name.toLowerCase() === model.toLowerCase();
-  });
+  // const config = schema.dmmf.datamodel.models.find((prismaModel) => {
+  //   return prismaModel.name.toLowerCase() === model.toLowerCase();
+  // });
 
-  if (!config) {
-    throw new Error(`generateModelSchema: Model ${model} not found`);
-  }
+  // if (!config) {
+  //   throw new Error(`generateModelSchema: Model ${model} not found`);
+  // }
 
-  const modelSchema: ModelSchema = {
-    columns:
-      config?.fields.map((field, index) => {
+  const modelSchema: ModelSchema = schema.dmmf.datamodel.models.reduce(
+    (prev, current) => {
+      const cols = current.fields.map((field) => {
         return {
           name: field.name,
           kind: field.kind,
@@ -29,7 +29,17 @@ export const generateModelSchema = ({
           relationFromFields: field.relationFromFields || [],
           isList: field.isList,
         };
-      }) || [],
-  };
+      });
+
+      return {
+        ...prev,
+        [current.name]: {
+          columns: cols,
+        },
+      };
+    },
+    {} as ModelSchema
+  );
+
   return modelSchema;
 };

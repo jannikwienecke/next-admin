@@ -3,13 +3,6 @@ generator client {
   previewFeatures = ["fullTextSearch", "fullTextIndex"]
 }
 
-// datasource db {
-//   provider = "postgresql"
-//   url      = "postgres://admin:ztPs6uLfxoX2@ep-fragrant-base-380181-pooler.eu-central-1.aws.neon.tech/neondb?pool_timeout=20&connection_limit=10&connect_timeout=20&pgbouncer=true"
-// }
-
-// DATABASE_URL="postgresql://postgres:testpass123@localhost:6500/mydb?schema=public"
-// ~ docker run -d -e POSTGRES_DB=db -e POSTGRES_PASSWORD=admin -e POSTGRES_USER=postgres -p "5432:5432" postgres
 datasource db {
   provider = "postgresql"
   url      = "postgresql://postgres:admin@localhost:5432/db?schema=public"
@@ -36,9 +29,11 @@ model AcitivityTag {
 }
 
 model Color {
-  id   Int    @id @default(autoincrement())
-  name String
-  Tag  Tag[]
+  id       Int        @id @default(autoincrement())
+  name     String
+  OrderTag OrderTag[]
+  Status   Status[]
+  Tag      Tag[]
 }
 
 model Location {
@@ -86,9 +81,9 @@ model VacationDescription {
   type                      String?
   status                    String?
   price                     String?
+  is_parent                 Boolean                   @default(false)
   locationId                Int?
   date_imported             String                    @default("")
-  is_parent                 Boolean                   @default(false)
   parent_id                 Int?
   DefaultVacationActivity   DefaultVacationActivity[]
   Order                     Order[]
@@ -150,9 +145,9 @@ model Order {
   status               String                @default("pending")
   additional_services  String                @default("")
   order_id             Int
-  user_id              Int
   hotel_id             Int?
   room_id              Int?
+  user_id              Int
   Hotel                Hotel?                @relation(fields: [hotel_id], references: [id], onDelete: NoAction)
   Room                 Room?                 @relation(fields: [room_id], references: [id], onDelete: NoAction)
   User                 User                  @relation(fields: [user_id], references: [id], onDelete: Cascade)
@@ -263,7 +258,8 @@ model OrderTag {
   id      Int    @id @default(autoincrement())
   label   String
   orderId Int
-  color   String @default("")
+  colorId Int
+  Color   Color  @relation(fields: [colorId], references: [id], onDelete: Cascade)
   Order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
 
@@ -297,4 +293,57 @@ model OrderReminder {
   title       String
   description String?
   date        DateTime
+}
+
+model IProject {
+  id          Int     @id @default(autoincrement())
+  name        String
+  description String?
+  ITask       ITask[]
+}
+
+model IStatus {
+  id    Int     @id @default(autoincrement())
+  label String
+  ITask ITask[]
+}
+
+model ITag {
+  id       Int        @id @default(autoincrement())
+  label    String
+  ITaskTag ITaskTag[]
+}
+
+model ITask {
+  id          Int        @id @default(autoincrement())
+  title       String
+  description String?
+  statusId    Int
+  projectId   Int
+  IProject    IProject   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  IStatus     IStatus    @relation(fields: [statusId], references: [id], onDelete: Cascade)
+  ITaskTag    ITaskTag[]
+}
+
+model ITaskTag {
+  id     Int   @id @default(autoincrement())
+  tagId  Int
+  taskId Int
+  ITag   ITag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  ITask  ITask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@unique([tagId, taskId], map: "TaskTag_tagId_taskId")
+}
+
+model Project {
+  id          Int     @id @default(autoincrement())
+  name        String
+  description String?
+}
+
+model Status {
+  id      Int    @id @default(autoincrement())
+  label   String
+  colorId Int
+  Color   Color  @relation(fields: [colorId], references: [id], onDelete: Cascade)
 }

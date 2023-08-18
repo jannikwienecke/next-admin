@@ -2,6 +2,7 @@ import { LoaderFunctionType } from "@/app/admin-ui/client/admin-utils/base-types
 import { createServerView } from "@/app/admin-ui/server/utils";
 import { prisma } from "@/app/db";
 import { TagInterface } from "./types";
+import { ITask } from "@prisma/client";
 
 export const loader: LoaderFunctionType<TagInterface> = async ({ query }) => {
   const tags = await prisma.tag.findMany({
@@ -27,24 +28,17 @@ export const loader: LoaderFunctionType<TagInterface> = async ({ query }) => {
   };
 };
 
-export default createServerView<TagInterface, "tag">({
-  model: "tag",
-  name: "tag",
+export default createServerView<ITask, keyof typeof prisma>({
+  model: "iTask",
+  name: "task",
   crud: {
     read: {
       // loader,
       orderBy: {
-        label: "asc",
+        title: "asc",
       },
-      labelKey: "label",
-      relationalFields: {
-        Color: {
-          labelKey: "name",
-        },
-        AcitivityTag: {
-          labelKey: "AcitivityTag",
-        },
-      },
+      labelKey: "title",
+      relationalFields: {},
     },
   },
 });

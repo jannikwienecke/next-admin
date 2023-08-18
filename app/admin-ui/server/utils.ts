@@ -18,6 +18,15 @@ export const getConfigByView = (
   return config;
 };
 
+export const getConfigByModel = (
+  serverConfig: ConfigTypeDictServer,
+  model: string
+) => {
+  const config = Object.values(serverConfig).find((c) => c.model == model);
+
+  return config;
+};
+
 export const getPrismaModelSchema = (schema: typeof Prisma, model: string) => {
   return schema.dmmf.datamodel.models.find((prismaModel) => {
     return prismaModel.name.toLowerCase() === model.toLowerCase();
@@ -41,7 +50,12 @@ export const createClientConfig = <T extends string | symbol | number>(
   return configItems.reduce((acc, config) => {
     return {
       ...acc,
-      [config.name]: config,
+      [config.name]: {
+        ...config,
+        model:
+          (config.model as string)[0]?.toUpperCase() +
+          (config.model as string).slice(1),
+      },
     };
   }, {} as ConfigTypeDictClient);
 };

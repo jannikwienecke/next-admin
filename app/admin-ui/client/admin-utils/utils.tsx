@@ -24,14 +24,28 @@ export const generateColumns = <T extends IDataValue>({
   baseColumns: ColumnSchema[];
   columnsToHide: string[];
 }): ColumnDef<T>[] => {
+  const baseColumnRelationFields = baseColumns
+    .map((c) => c.relationFromFields?.[0])
+    .filter(Boolean)
+    .flat();
+
   // filter if is in custom columns -> not in base columns
   const baseColumnsTransformed = baseColumns
     .filter((baseColumn) => {
-      return (
-        !customColumns.find(
+      if (baseColumnRelationFields.includes(baseColumn.name)) {
+        return false;
+      }
+      if (baseColumn.isList === true) {
+        return false;
+      }
+      if (
+        customColumns.find(
           (customColumn) => customColumn.accessorKey === baseColumn.name
-        ) && baseColumn.isList === false
-      );
+        )
+      ) {
+        return false;
+      }
+      return true;
     })
     .map((columnSchema) => {
       const columnType: ColumnTypeTest<T> = {
@@ -238,28 +252,48 @@ export const generateNavigationCategories = ({
 // });
 
 export const generateFormFields = ({
-  modelSchema,
+  modelSchema: moderlSchamDict,
   config,
   activeRecord,
+  defaultValueLabelKey,
+  defaultFormState,
 }: {
   modelSchema: ModelSchema;
   config: ConfigTypeClient<any, string>;
   activeRecord?: IDataValue;
+  defaultValueLabelKey?: string;
+  defaultFormState?: Record<string, any>;
 }): FormFieldType[] => {
   const { fieldToHide } = config.form;
+
+  const modelSchema = moderlSchamDict[config.model];
+
+  const baseColumnRelationFields = modelSchema.columns
+    .map((c) => c.relationFromFields?.[0])
+    .filter(Boolean)
+    .flat() as string[];
 
   const _fieldsToHide = (
     fieldToHide ? [...fieldToHide, "id"] : ["id"]
   ) as string[];
   return modelSchema.columns
     .filter((col) => !_fieldsToHide.includes(col.name))
+    .filter((col) => !baseColumnRelationFields.includes(col.name))
+    .filter((col) => col.isList === false)
     .map((col) => {
       const value = activeRecord?.[col.name];
 
       let type = col.type as FormFieldType["type"];
       let relation = undefined as FormFieldType["relation"];
       let name = col.name;
-      let defaultValue = value || undefined;
+      const defaultFormStateValue =
+        defaultFormState && defaultFormState[col.name];
+
+      let defaultValue = defaultFormStateValue
+        ? defaultFormStateValue
+        : config.labelKey === col.name
+        ? defaultValueLabelKey
+        : value || undefined;
 
       if (col.relationFromFields.length) {
         type = "Relation";
@@ -290,26 +324,3 @@ export const generateFormFields = ({
       };
     });
 };
-
-// export const generateZodSchema = ({
-//   fields,
-// }: {
-//   fields: FormFieldType[];
-// }): z.ZodSchema<any> => {
-//   const dictTypeToZodTypeDict = {
-//     String: z.string().min(2).max(50),
-//     Int: z.number(),
-//   };
-
-//   return fields.reduce((acc, field) => {
-//     const zodTypeFn = dictTypeToZodTypeDict[field.type];
-
-//     // acc[field.name] = zodTypeFn;
-//     // acc[field.name as any] = zodTypeFn;
-
-//     return {
-//       ...acc,
-//       label: zodTypeFn,
-//     };
-//   }, z.object({}));
-// };

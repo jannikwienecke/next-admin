@@ -7,15 +7,18 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { cn } from "@/lib/utils";
 
 export function SlideOverContainer({
   onClose,
   children,
   isOpen,
+  className,
 }: {
   children: React.ReactNode;
   isOpen: boolean;
   onClose?: () => void;
+  className?: string;
 }) {
   return (
     <Sheet
@@ -25,7 +28,11 @@ export function SlideOverContainer({
         !isOpen && onClose?.();
       }}
     >
-      <SheetContent className="w-[600px] sm:w-[640px]">{children}</SheetContent>
+      <SheetContent
+        className={cn("w-[500px] sm:w-[600px] transition-all", className)}
+      >
+        {children}
+      </SheetContent>
     </Sheet>
   );
 }

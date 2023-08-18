@@ -15,22 +15,39 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons";
+import {
+  CaretSortIcon,
+  CheckIcon,
+  PlusCircledIcon,
+} from "@radix-ui/react-icons";
 import { useDebounce } from "@uidotdev/usehooks";
 import * as React from "react";
 import { FormFieldType } from "../client/admin-utils/base-types";
+import { useAdminState } from "../client/provider/state";
 
 interface ComboboxItemProps {
   value: number;
   label: string;
 }
 
-export const RelationFormInputField = ({ ...props }: FormFieldType) => {
+export const RelationFormInputField = ({
+  ...props
+}: FormFieldType & {
+  onAddNew: (props: { value: string }) => void;
+}) => {
   return <AdminRelationCombobox {...props} />;
 };
 
-function AdminRelationCombobox({ relation, ...props }: FormFieldType) {
+function AdminRelationCombobox({
+  relation,
+  onAddNew,
+  ...props
+}: FormFieldType & {
+  onAddNew: (props: { value: string }) => void;
+}) {
   const [open, setOpen] = React.useState(false);
+
+  const { emiiter } = useAdminState();
 
   const defaultValue: ComboboxItemProps | undefined = (
     props.defaultValue as any
@@ -48,33 +65,40 @@ function AdminRelationCombobox({ relation, ...props }: FormFieldType) {
   const debouncedQuery = useDebounce(query, 300);
 
   const cancelRef = React.useRef(false);
+
   React.useEffect(() => {
     const fetchData = async () => {
-      const res = await fetch(
-        `api?query=${debouncedQuery}&model=${relation.modelName}`
-      );
-      const data = (await res.json()) as ComboboxItemProps[];
-      if (cancelRef.current) return;
-
-      if (data.length > 0 && !defaultItems) {
-        const defaultItemsIncludesValue = data?.find(
-          (item: any) => item.value === defaultValue?.value
+      try {
+        const res = await fetch(
+          `api?query=${debouncedQuery}&model=${relation.modelName}`
         );
 
-        if (defaultItemsIncludesValue) {
-          setDefaultItems(data);
-          setItems(data);
-        } else {
-          if (defaultValue) {
-            setItems([...data, defaultValue]);
-            setDefaultItems([...data, defaultValue]);
-          } else {
-            setItems(data);
+        const data = (await res.json()) as ComboboxItemProps[];
+
+        if (cancelRef.current) return;
+
+        if (data.length > 0 && !defaultItems) {
+          const defaultItemsIncludesValue = data?.find(
+            (item: any) => item.value === defaultValue?.value
+          );
+
+          if (defaultItemsIncludesValue) {
             setDefaultItems(data);
+            setItems(data);
+          } else {
+            if (defaultValue) {
+              setItems([...data, defaultValue]);
+              setDefaultItems([...data, defaultValue]);
+            } else {
+              setItems(data);
+              setDefaultItems(data);
+            }
           }
+        } else {
+          setItems(data);
         }
-      } else {
-        setItems(data);
+      } catch (error) {
+        console.log("Error Relational Search: ", { error });
       }
     };
     if (defaultItems?.length && debouncedQuery === "") return;
@@ -91,10 +115,14 @@ function AdminRelationCombobox({ relation, ...props }: FormFieldType) {
     }
   }, [defaultItems, props.defaultValue, props.value, query]);
 
-  const _items = items?.length === 0 ? defaultItems : items;
+  const _items =
+    items?.length === 0 && query === "" && defaultItems?.length
+      ? defaultItems
+      : items;
 
   const labelRef = React.useRef("");
   const currentLabel = _items?.find((item) => item.value === value)?.label;
+
   return (
     <>
       <Input
@@ -119,9 +147,10 @@ function AdminRelationCombobox({ relation, ...props }: FormFieldType) {
           </Button>
         </PopoverTrigger>
 
-        <PopoverContent className="w-[320px] p-0">
+        <PopoverContent className="left-28 w-[550px] p-0">
           <CommandBar
-            key={query ? query : _items?.length ? "items" : "no-items"}
+            onAddNew={() => onAddNew({ value: query })}
+            key={`items-length:${items?.length}-query-${query}`}
             items={_items}
             value={value ?? ""}
             onValueChange={setQuery}
@@ -146,17 +175,19 @@ const CommandBar = ({
   items,
   value,
   onSelect,
+  onAddNew,
 }: {
   onValueChange: (value: string) => void;
   query: string;
   items?: ComboboxItemProps[];
   value: number;
   onSelect: (value: number) => void;
+  onAddNew: () => void;
 }) => {
   return (
     <Command>
       <CommandInput
-        key={query ? query : items?.length ? "items" : "no-items"}
+        key={`items-length:${items?.length}-query-${query}`}
         autoFocus
         value={query}
         placeholder="Search Item..."
@@ -164,29 +195,39 @@ const CommandBar = ({
         onValueChange={onValueChange}
       />
 
-      <CommandEmpty>Noting found.</CommandEmpty>
+      {items?.length === 0 ? (
+        <button
+          onClick={onAddNew}
+          className="px-3 py-2 flex flex-row space-x-2 items-center text-muted-foreground cursor-pointer"
+        >
+          <PlusCircledIcon className="h-4 w-4" />
+          <div>Add new</div>
+        </button>
+      ) : null}
 
-      <CommandGroup>
-        {items?.map((item) => {
-          return (
-            <CommandItem
-              key={item.value}
-              onSelect={(item) => {
-                onSelect(+item.split("||")[0]);
-              }}
-            >
-              <span className="hidden">{item.value}||</span>
-              <span>{item.label}</span>
-              <CheckIcon
-                className={cn(
-                  "ml-auto h-4 w-4",
-                  value === item.value ? "opacity-100" : "opacity-0"
-                )}
-              />
-            </CommandItem>
-          );
-        })}
-      </CommandGroup>
+      {items?.length ? (
+        <CommandGroup>
+          {items?.map((item) => {
+            return (
+              <CommandItem
+                key={item.value}
+                onSelect={(item) => {
+                  onSelect(+item.split("||")[0]);
+                }}
+              >
+                <span className="hidden">{item.value}||</span>
+                <span>{item.label}</span>
+                <CheckIcon
+                  className={cn(
+                    "ml-auto h-4 w-4",
+                    value === item.value ? "opacity-100" : "opacity-0"
+                  )}
+                />
+              </CommandItem>
+            );
+          })}
+        </CommandGroup>
+      ) : null}
     </Command>
   );
 };

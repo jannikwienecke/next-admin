@@ -18,6 +18,12 @@ export type AdminStateEvents =
       };
     }
   | {
+      type: "UPDATE_DATA";
+      data: {
+        data: IDataValue[];
+      };
+    }
+  | {
       type: "CRUD_CREATE";
     }
   | {
@@ -39,5 +45,13 @@ export type AdminStateEvents =
       type: "CRUD_SAVE";
       data: {
         formState: Record<string, any>;
+      };
+    }
+  | {
+      type: "CRUD_CLICK_CREATE_RELATIONAL_VALUE";
+      data: {
+        modelName: string;
+        formState: Record<string, any>;
+        value: string;
       };
     };
