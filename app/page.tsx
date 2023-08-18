@@ -6,20 +6,6 @@ import { serverConfig } from "./index.server";
 import { waitAll, waitFor } from "@/lib/utils";
 
 export default async function Home(props: BasePageProps) {
-  const c = clientConfig;
-  const s = serverConfig;
-
-  const cNames = Object.keys(c);
-  const sNames = Object.keys(s);
-
-  sNames.forEach((name) => {
-    if (!cNames.includes(name)) {
-      const message = `Server config has a key that is not in client config: "${name}"`;
-
-      throw new Error(message);
-    }
-  });
-
   const [{ data, modelSchema, filters }] = await waitAll([
     loader(props),
     waitFor(500),

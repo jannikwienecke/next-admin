@@ -11,10 +11,25 @@ import { clientConfig } from "@/app/index.client";
 
 const DEFAULT_VIEW = "tag";
 
+const _validateConfig = () => {
+  const clientNames = Object.keys(clientConfig);
+  const serverNames = Object.keys(serverConfig);
+
+  serverNames.forEach((name) => {
+    if (!clientNames.includes(name)) {
+      const message = `Server config has a key that is not in client config: "${name}"`;
+
+      throw new Error(message);
+    }
+  });
+};
+
 export const loader = async ({ searchParams, params }: BasePageProps) => {
   if (!searchParams?.view) {
     redirectToView(searchParams, DEFAULT_VIEW);
   }
+
+  _validateConfig();
 
   const query = Routing.create(searchParams).getQuery();
   const sorting = Routing.create(searchParams).getSorting();
