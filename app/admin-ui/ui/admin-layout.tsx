@@ -31,7 +31,9 @@ export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
             <PageSidebar />
 
             <div className="col-span-3 lg:col-span-4 lg:border-l">
-              <div className="h-full px-4 py-6 lg:px-8">{children}</div>
+              <div className="h-full px-4 py-6 lg:px-8 relative">
+                {children}
+              </div>
             </div>
           </div>
         </div>

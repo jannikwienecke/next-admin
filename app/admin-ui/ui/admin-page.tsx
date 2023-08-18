@@ -6,6 +6,7 @@ import React from "react";
 import { CommandDialog } from "@/components/ui/command";
 
 import { clientConfig } from "@/app/index.client";
+import { usePrevious } from "@uidotdev/usehooks";
 import {
   IDataValue,
   ModelSchema,
@@ -18,9 +19,9 @@ import {
 } from "../client/provider/state";
 import { AdminFormSheet } from "./admin-form-sheet";
 import { AdminLayout } from "./admin-layout";
+import { AdminLoadingOverlay } from "./admin-loading-overlay";
 import { AdminPageHeader } from "./admin-page-header";
 import { AdminTable } from "./admin-table";
-import { usePrevious } from "@uidotdev/usehooks";
 
 export const AdminDashboard = (props: {
   data: IDataValue[];
@@ -41,10 +42,20 @@ const AdminPage = (props: {
   modelSchema: ModelSchema;
   filters: TableFilterProps;
 }) => {
-  const { send, data, columns, routing } = useAdminState();
-  const { view, query } = routing;
+  const { send, data, columns, state, routing } = useAdminState();
+  const { view, query, endLoading } = routing;
 
   const previousView = usePrevious(view);
+
+  React.useEffect(() => {
+    endLoading();
+    send({
+      type: "UPDATE_DATA",
+      data: {
+        data: props.data,
+      },
+    });
+  }, [props.data, endLoading, send]);
 
   React.useEffect(() => {
     if (previousView !== view) {
@@ -59,13 +70,6 @@ const AdminPage = (props: {
           filters: props.filters,
         },
       });
-    } else {
-      send({
-        type: "UPDATE_DATA",
-        data: {
-          data: props.data,
-        },
-      });
     }
   }, [
     previousView,
@@ -73,6 +77,7 @@ const AdminPage = (props: {
     props.filters,
     props.modelSchema,
     query,
+    routing.endLoading,
     send,
     view,
   ]);
@@ -80,6 +85,8 @@ const AdminPage = (props: {
   return (
     <AdminLayout>
       <>
+        <AdminLoadingOverlay />
+
         {!data.length && props.data.length ? (
           <></>
         ) : (

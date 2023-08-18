@@ -7,10 +7,12 @@ import { serverAction } from "../../server/actions";
 import { useToast } from "@/components/ui/use-toast";
 import { useForm } from "react-hook-form";
 import { LL } from "@/lib/utils";
+import { Router } from "next/router";
 
 const useRouting = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [loading, setLoading] = React.useState(false);
 
   const routing = React.useMemo(() => {
     return Routing.create(searchParams);
@@ -37,6 +39,7 @@ const useRouting = () => {
   const _update = React.useCallback(
     (routing: Routing) => {
       router.push(`?${routing.toString()}`);
+      setLoading(true);
     },
     [router]
   );
@@ -64,6 +67,10 @@ const useRouting = () => {
     [_update]
   );
 
+  const endLoading = React.useCallback(() => {
+    setLoading(false);
+  }, []);
+
   return {
     view: routingRef.current.getCurrentView(),
     query,
@@ -71,6 +78,8 @@ const useRouting = () => {
     updateQuery,
     updateSorting,
     sorting,
+    loading,
+    endLoading,
   };
 };
 
@@ -297,4 +306,22 @@ export const useAdminForm = ({
     fields,
     submitForm,
   };
+};
+
+export const useRouterLoading = () => {
+  const [loading, setLoading] = React.useState(false);
+
+  React.useEffect(() => {
+    const start = () => setLoading(true);
+    const end = () => setLoading(false);
+    Router.events.on("routeChangeStart", start);
+    Router.events.on("routeChangeComplete", end);
+    Router.events.on("routeChangeError", end);
+    return () => {
+      Router.events.off("routeChangeStart", start);
+      Router.events.off("routeChangeComplete", end);
+      Router.events.off("routeChangeError", end);
+    };
+  }, []);
+  return loading;
 };
