@@ -17,7 +17,7 @@ export const loader = async ({ searchParams, params }: BasePageProps) => {
   }
 
   const query = Routing.create(searchParams).getQuery();
-
+  const sorting = Routing.create(searchParams).getSorting();
   const view = searchParams?.view;
 
   const config = Object.values(serverConfig).find(
@@ -34,13 +34,15 @@ export const loader = async ({ searchParams, params }: BasePageProps) => {
   let data: any[] = [];
 
   if (config.crud.read.loader) {
-    data = (await config.crud.read.loader({ searchParams, params, query }))
-      .data;
+    data = (
+      await config.crud.read.loader({ searchParams, params, query, sorting })
+    ).data;
   } else {
     data = await pageLoader({
       clientConfig: clientConfigModel,
       config,
       query,
+      sorting,
     });
   }
 

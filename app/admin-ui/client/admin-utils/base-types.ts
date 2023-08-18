@@ -67,12 +67,13 @@ export type LoaderProps = {
 export type LoaderFunctionType<T> = (
   props: LoaderProps & {
     query: string;
+    sorting: SortingProps;
   }
 ) => Promise<{
   data: T[];
 }>;
 
-export type SearchParamsKeys = "view" | "query";
+export type SearchParamsKeys = "view" | "query" | "orderBy" | "orderByField";
 
 export type BasePageProps = {
   params: { slug: string };
@@ -193,3 +194,8 @@ export interface ComboboxItemProps {
 }
 
 export type TableFilterProps = FilterType[];
+
+export type SortingProps = {
+  id: string;
+  direction: "asc" | "desc";
+};

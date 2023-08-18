@@ -36,6 +36,7 @@ export const AdminTable = () => {
     <>
       <DataTable
         data={data}
+        onSortingChange={emiiter.clickSorting}
         columns={_columns}
         components={{
           Toolbar: AdminTableControl,

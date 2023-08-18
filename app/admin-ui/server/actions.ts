@@ -4,14 +4,20 @@ import { revalidatePath } from "next/cache";
 import { crud, generateDataObject, getIdFieldType } from "./adapter";
 import { getConfigByView } from "./utils";
 import { serverConfig } from "@/app/index.server";
+import { SortingProps } from "../client/admin-utils/base-types";
 
 type Action = {
   name: "create" | "edit" | "delete";
   data: Record<string, any>;
 };
 
+// type Sorting = {
+//   name: "sorting";
+//   data: SortingProps;
+// };
+
 type ServerEventsProps = {
-  action: Action;
+  action: Action; // Sorting;
   viewName: string;
 };
 

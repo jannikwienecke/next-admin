@@ -2,6 +2,7 @@ import {
   ConfigTypeDictClient,
   IDataValue,
   ModelSchema,
+  SortingProps,
   TableFilterProps,
 } from "../admin-utils/base-types";
 
@@ -53,5 +54,11 @@ export type AdminStateEvents =
         modelName: string;
         formState: Record<string, any>;
         value: string;
+      };
+    }
+  | {
+      type: "CLICK_SORTING";
+      data: {
+        sorting: SortingProps;
       };
     };

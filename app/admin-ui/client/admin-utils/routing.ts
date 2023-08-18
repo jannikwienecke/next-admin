@@ -1,5 +1,5 @@
 import { ReadonlyURLSearchParams, redirect } from "next/navigation";
-import { SearchParamsKeys, ViewName } from "./base-types";
+import { SearchParamsKeys, SortingProps } from "./base-types";
 
 class AdminSearchParams {
   _params: URLSearchParams = new URLSearchParams();
@@ -32,6 +32,11 @@ class AdminSearchParams {
     return this;
   }
 
+  delete(key: SearchParamsKeys) {
+    this._params.delete(key);
+    return this;
+  }
+
   toString() {
     return this._params.toString();
   }
@@ -53,7 +58,7 @@ export const redirectSearchParams = ({
 
 export const redirectToView = (
   searchParams: Record<string, string> = {},
-  view: ViewName
+  view: string
 ): never => {
   return redirectSearchParams({ searchParams, key: "view", value: view });
 };
@@ -61,7 +66,7 @@ export const redirectToView = (
 export const getCurrentView = (
   searchParams: Record<string, string> | ReadonlyURLSearchParams = {}
 ) => {
-  return AdminSearchParams.create(searchParams).get("view") as ViewName;
+  return AdminSearchParams.create(searchParams).get("view") as string;
 };
 
 export const getQuery = (
@@ -76,7 +81,7 @@ interface IRouting {
   // redirectSearchParams: () => void;
   getCurrentView: () => void;
   getQuery: () => void;
-  redirectToView: (view: ViewName) => void;
+  redirectToView: (view: string) => void;
   toString: () => string;
 }
 
@@ -100,16 +105,38 @@ export class Routing implements IRouting {
   }
 
   getCurrentView() {
-    return this.searchParamsHelper.get("view") as ViewName;
+    return this.searchParamsHelper.get("view") as string;
   }
 
-  redirectToView(view: ViewName) {
+  getSorting(): SortingProps {
+    // this.searchParamsHelper.set("orderBy", sorting.direction);
+    // this.searchParamsHelper.set("orderByField", sorting.id);
+    const orderBy = this.searchParamsHelper.get("orderBy") as "asc" | "desc";
+    const orderByField = this.searchParamsHelper.get("orderByField") as string;
+
+    return {
+      direction: orderBy,
+      id: orderByField,
+    };
+  }
+
+  redirectToView(view: string) {
     this.searchParamsHelper.set("view", view);
     return this;
   }
 
   updateQuery(query: string) {
     this.searchParamsHelper.set("query", query);
+    return this;
+  }
+
+  updateSorting(sorting: SortingProps | null) {
+    if (!sorting) {
+      this.searchParamsHelper.delete("orderBy").delete("orderByField");
+    } else {
+      this.searchParamsHelper.set("orderBy", sorting.direction);
+      this.searchParamsHelper.set("orderByField", sorting.id);
+    }
     return this;
   }
 

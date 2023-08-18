@@ -8,3 +8,8 @@ export function cn(...inputs: ClassValue[]) {
 export function LL(...inputs: any[]) {
   console.log(":: ", ...inputs);
 }
+
+export const waitFor = (ms: number) =>
+  new Promise((resolve) => setTimeout(resolve, ms));
+
+export const waitAll = (promises: Promise<any>[]) => Promise.all(promises);

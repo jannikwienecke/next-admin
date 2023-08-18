@@ -2,6 +2,7 @@ import { PRODVIDER } from "@/app/admin-ui";
 import {
   ConfigTypeClient,
   ConfigTypeServer,
+  SortingProps,
 } from "@/app/admin-ui/client/admin-utils/base-types";
 
 const { client, schema } = PRODVIDER.prisma;
@@ -38,8 +39,10 @@ export const prismaLoader = async ({
   query,
   config,
   clientConfig,
+  sorting,
 }: {
   query: string;
+  sorting: SortingProps;
   config: ConfigTypeServer<any, string>;
   clientConfig: ConfigTypeClient<any, string>;
 }) => {
@@ -47,9 +50,13 @@ export const prismaLoader = async ({
 
   const crudRead = config.crud?.read;
 
-  const orderBy = crudRead.orderBy || {
-    [crudRead.labelKey]: "asc",
-  };
+  const orderBy = sorting.id
+    ? {
+        [sorting.id]: sorting.direction,
+      }
+    : crudRead.orderBy || {
+        [crudRead.labelKey]: "asc",
+      };
 
   const _id = query ? (isNaN(+query) ? undefined : +query) : undefined;
 
@@ -60,6 +67,7 @@ export const prismaLoader = async ({
   const resultData = await (client[config.model as any] as any)?.findMany({
     orderBy,
     include,
+    take: 10,
     where: {
       id: {
         equals: _id,

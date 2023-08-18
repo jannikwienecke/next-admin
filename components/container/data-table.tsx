@@ -12,6 +12,7 @@ import {
   ColumnDef,
   ColumnFiltersState,
   SortingState,
+  Updater,
   VisibilityState,
   flexRender,
   getCoreRowModel,
@@ -29,12 +30,18 @@ import { IDataValue } from "@/app/admin-ui/client/admin-utils/base-types";
 interface DataTableProps<TData extends IDataValue, TValue> {
   columns: ColumnDef<TData>[];
   data: TData[];
+  onRowSelectionChange?: (rowSelection: Record<string, boolean>) => void;
+  onSortingChange?: (sorting: {
+    id: string;
+    direction: "asc" | "desc";
+  }) => void;
 }
 
 export function DataTable<TData extends IDataValue, TValue>({
   columns,
   data,
   components = {},
+  onSortingChange,
 }: DataTableProps<TData, TValue> & {
   components?: {
     Pagination?: React.ComponentType<DataTablePaginationProps<TData>>;
@@ -49,24 +56,38 @@ export function DataTable<TData extends IDataValue, TValue>({
   );
   const [sorting, setSorting] = React.useState<SortingState>([]);
 
+  const handleSortingChange = (props: Updater<SortingState>) => {
+    setSorting(props);
+  };
+
+  const onSortingChangeRef = React.useRef(onSortingChange);
+  React.useEffect(() => {
+    if (onSortingChangeRef.current && sorting.length) {
+      onSortingChangeRef.current({
+        id: sorting[0].id,
+        direction: sorting[0].desc === true ? "desc" : "asc",
+      });
+    }
+  }, [sorting]);
+
   const table = useReactTable({
     data,
     columns,
     state: {
-      sorting,
+      sorting: sorting,
       columnVisibility,
       rowSelection,
       columnFilters,
     },
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
-    onSortingChange: setSorting,
+    onSortingChange: (sorting) => handleSortingChange(sorting),
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
+    // getSortedRowModel: getSortedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
   });

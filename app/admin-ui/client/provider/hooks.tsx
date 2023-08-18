@@ -1,6 +1,6 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import React from "react";
-import { IDataValue } from "../admin-utils/base-types";
+import { IDataValue, SortingProps } from "../admin-utils/base-types";
 import { Routing } from "../admin-utils/routing";
 import { SomeMachineContext } from "./state";
 import { serverAction } from "../../server/actions";
@@ -16,13 +16,23 @@ const useRouting = () => {
     return Routing.create(searchParams);
   }, [searchParams]);
 
-  const view = React.useMemo(() => {
-    return routing.getCurrentView();
+  const routingRef = React.useRef(routing);
+
+  React.useEffect(() => {
+    routingRef.current = routing;
   }, [routing]);
 
+  const view = React.useMemo(() => {
+    return routingRef.current.getCurrentView();
+  }, []);
+
   const query = React.useMemo(() => {
-    return routing.getQuery();
-  }, [routing]);
+    return routingRef.current.getQuery();
+  }, []);
+
+  const sorting = React.useMemo(() => {
+    return routingRef.current.getSorting();
+  }, []);
 
   const _update = React.useCallback(
     (routing: Routing) => {
@@ -33,23 +43,34 @@ const useRouting = () => {
 
   const redirectToView = React.useCallback(
     (view: string) => {
-      _update(routing.redirectToView(view));
+      routing.updateSorting(null);
+
+      _update(routingRef.current.redirectToView(view));
     },
     [_update, routing]
   );
 
   const updateQuery = React.useCallback(
     (query: string) => {
-      _update(routing.updateQuery(query));
+      _update(routingRef.current.updateQuery(query));
     },
-    [_update, routing]
+    [_update]
+  );
+
+  const updateSorting = React.useCallback(
+    (sorting: SortingProps) => {
+      _update(routingRef.current.updateSorting(sorting));
+    },
+    [_update]
   );
 
   return {
-    view,
+    view: routingRef.current.getCurrentView(),
     query,
     redirectToView,
     updateQuery,
+    updateSorting,
+    sorting,
   };
 };
 
@@ -142,6 +163,8 @@ const useUiEvents = () => {
   const fields = state.context.form?.fields || [];
   const form = state.context.form;
 
+  const { updateQuery, query: urlQuery, updateSorting } = useRouting();
+
   const clickCreate = () => {
     send("CRUD_CREATE");
   };
@@ -178,6 +201,10 @@ const useUiEvents = () => {
     });
   };
 
+  const clickSorting = (sorting: SortingProps) => {
+    updateSorting(sorting);
+  };
+
   return {
     clickCreate,
     clickEdit,
@@ -185,6 +212,7 @@ const useUiEvents = () => {
     clickSave,
     clickDelete,
     clickCreateRelationalValue,
+    clickSorting,
   };
 };
 
