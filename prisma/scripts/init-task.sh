@@ -1,1 +1,1 @@
-cat ./prisma/task.sql | docker exec -i 12e71fda940c  psql -U postgres -d db
+cat ./prisma/task.sql | docker exec -i 2e94895c9b6a  psql -U postgres -d db

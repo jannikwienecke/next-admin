@@ -14,11 +14,11 @@ interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
 export function Sidebar({ className, categories }: SidebarProps) {
   return (
     <div className={cn("pb-12", className)}>
-      <div className="space-y-4 py-4">
+      <ul className="space-y-4 py-4">
         {categories.map((category) => (
           <SidebarCategory key={category.label} {...category} />
         ))}
-      </div>
+      </ul>
     </div>
   );
 }
@@ -31,7 +31,7 @@ const SidebarCategory = ({
   items: SidebarItemProps[];
 }) => {
   return (
-    <div className="px-3 py-2">
+    <li className="px-3 py-2">
       <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">
         {label}
       </h2>
@@ -41,7 +41,7 @@ const SidebarCategory = ({
           <SidebarItem key={item.label} {...item} />
         ))}
       </div>
-    </div>
+    </li>
   );
 };
 
