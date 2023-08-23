@@ -2,12 +2,14 @@ import { AppRouterInstance } from "next/dist/shared/lib/app-router-context";
 import {
   ClientConfigServer,
   ConfigTypeDictClient,
+  FormFieldType,
   ICommand,
   IDataValue,
   ModelSchema,
   SortingProps,
   TableFilterProps,
 } from "../admin-utils/base-types";
+import { type } from "os";
 
 export type AdminStateEvents =
   | {
@@ -52,15 +54,11 @@ export type AdminStateEvents =
     }
   | {
       type: "CRUD_SAVE";
-      data: {
-        formState: Record<string, any>;
-      };
     }
   | {
       type: "CRUD_CLICK_CREATE_RELATIONAL_VALUE";
       data: {
         modelName: string;
-        formState: Record<string, any>;
         value: string;
       };
     }
@@ -99,5 +97,12 @@ export type AdminStateEvents =
       type: "COMMAND_BAR_SELECT_ROW";
       data: {
         row: IDataValue;
+      };
+    }
+  | {
+      type: "FORM_CHANGE";
+      data: {
+        field: FormFieldType;
+        value: any;
       };
     };

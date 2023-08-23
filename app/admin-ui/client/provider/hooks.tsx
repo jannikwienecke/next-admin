@@ -199,12 +199,26 @@ const useUiEvents = () => {
     });
   };
 
+  const isCancellingRef = React.useRef(false);
+  React.useEffect(() => {
+    if (state.event.type === "CRUD_CANCEL") {
+      isCancellingRef.current = false;
+    }
+  }, [state.event.type]);
+
   const clickCancel = () => {
+    if (isCancellingRef.current) return;
+    isCancellingRef.current = true;
+
+    setTimeout(() => {
+      isCancellingRef.current = false;
+    }, 100);
+
     send({ type: "CRUD_CANCEL" });
   };
 
-  const clickSave = (formState: Record<string, string>) => {
-    send({ type: "CRUD_SAVE", data: { formState } });
+  const clickSave = () => {
+    send({ type: "CRUD_SAVE" });
   };
 
   const clickDelete = (row: IDataValue) => {
@@ -213,13 +227,8 @@ const useUiEvents = () => {
 
   const clickCreateRelationalValue = (props: {
     modelName: string;
-    formState: Record<string, any>;
     value: string;
   }) => {
-    // hier formstate is not set correctly
-    // instead of projectId  statusId -> use IProject und IStatus
-    console.log({ formState: props.formState });
-
     send({
       type: "CRUD_CLICK_CREATE_RELATIONAL_VALUE",
       data: props,
@@ -252,14 +261,11 @@ const useUiEvents = () => {
     send("CLICK_CLOSE_COMMANDS");
   };
 
-  const changeFormState = ({
-    field,
-    value,
-  }: {
-    field: FormFieldType;
-    value: any;
-  }) => {
-    console.log({ field, value });
+  const changeFormState = (props: { field: FormFieldType; value: any }) => {
+    send({
+      type: "FORM_CHANGE",
+      data: props,
+    });
   };
 
   return {
@@ -349,14 +355,6 @@ export const useAdminForm = ({
     onSubmit(values_);
   };
 
-  // React.useEffect(() => {
-  //   // after fields change -> reset the form with the new default values
-  //   fields.forEach((f) => {
-  //     if (!f.defaultValue) return;
-  //     form.setValue(f.name, f.defaultValue);
-  //   });
-  // }, [fields, form]);
-
   return {
     // form,
     fields,
@@ -438,6 +436,7 @@ export const useCommandbar = () => {
           send({ type: "CLICK_CLOSE_COMMANDS" });
         } else {
           send({ type: "CLICK_CLOSE_COMMAND_BAR" });
+          send("CRUD_CANCEL");
         }
       }
 

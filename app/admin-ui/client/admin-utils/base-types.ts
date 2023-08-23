@@ -245,3 +245,7 @@ export type MetaDataType = {
 export type ClientConfigServer = {
   mappings?: MappingType<any>;
 };
+
+export type FormStateViewDictType = {
+  string: Record<string, any>;
+};

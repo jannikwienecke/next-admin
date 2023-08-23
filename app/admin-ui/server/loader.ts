@@ -12,8 +12,6 @@ import { getTableFilters } from "./table-filters";
 import { serverConfig } from "@/app/index.server";
 import { clientConfig } from "@/app/index.client";
 
-const DEFAULT_VIEW = "tag";
-
 const _validateConfig = () => {
   const clientNames = Object.keys(clientConfig);
   const serverNames = Object.keys(serverConfig);
@@ -28,11 +26,14 @@ const _validateConfig = () => {
 };
 
 export const loader = async ({ searchParams, params }: BasePageProps) => {
-  if (!searchParams?.view) {
-    redirectToView(searchParams, DEFAULT_VIEW);
-  }
-
   _validateConfig();
+
+  const defaultConfig = Object.values(serverConfig)[0];
+  const defaultView = defaultConfig.name;
+
+  if (!searchParams?.view) {
+    redirectToView(searchParams, defaultView);
+  }
 
   const query = Routing.create(searchParams).getQuery();
   const sorting = Routing.create(searchParams).getSorting();
@@ -43,7 +44,7 @@ export const loader = async ({ searchParams, params }: BasePageProps) => {
   );
 
   if (!config) {
-    return redirectToView(searchParams, DEFAULT_VIEW);
+    return redirectToView(searchParams, defaultView);
   }
 
   const clientConfigModel =

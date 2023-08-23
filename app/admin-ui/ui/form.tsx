@@ -40,13 +40,13 @@ export function AdminForm({
   submitForm: (event: FormEvent<HTMLFormElement>) => void;
   fields: FormFieldType[];
 }) {
-  const { emiiter, form: formState } = useAdminState();
+  const { emiiter, form: formState, state } = useAdminState();
 
   const form = useForm();
 
   return (
     <Form {...form}>
-      <form onSubmit={submitForm} className="space-y-8">
+      <div className="space-y-8">
         {fields.map((f) => {
           const Component = FormFieldDict[f.type];
 
@@ -62,12 +62,11 @@ export function AdminForm({
                       : (f.name as any)
                   }
                   onAddNew={(props) => {
-                    // if (!f.relation) return;
-                    // emiiter.clickCreateRelationalValue({
-                    //   modelName: f.relation?.modelName,
-                    //   formState: form.getValues(),
-                    //   ...props,
-                    // });
+                    if (!f.relation) return;
+                    emiiter.clickCreateRelationalValue({
+                      modelName: f.relation?.modelName,
+                      ...props,
+                    });
                   }}
                   onUpdate={(value) => {
                     emiiter.changeFormState({
@@ -80,23 +79,23 @@ export function AdminForm({
             </>
           );
         })}
+      </div>
 
-        <Slideover.Footer>
-          <>
-            <Button
-              type="reset"
-              onClick={emiiter.clickCancel}
-              variant={"outline"}
-            >
-              Cancel
-            </Button>
+      <Slideover.Footer>
+        <div className="pt-8 flex flex-row space-x-2">
+          <Button
+            type="reset"
+            onClick={emiiter.clickCancel}
+            variant={"outline"}
+          >
+            Cancel
+          </Button>
 
-            <Button disabled={saving} type="submit">
-              {saving ? <Spinner /> : "Save changes"}
-            </Button>
-          </>
-        </Slideover.Footer>
-      </form>
+          <Button onClick={emiiter.clickSave} disabled={saving} type="submit">
+            {saving ? <Spinner /> : "Save changes"}
+          </Button>
+        </div>
+      </Slideover.Footer>
     </Form>
   );
 }

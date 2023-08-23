@@ -5,6 +5,7 @@ import {
   ConfigTypeDictClient,
   FilterType,
   FormFieldType,
+  FormStateViewDictType,
   ICommand,
   ICommandAction,
   IDataValue,
@@ -68,7 +69,7 @@ export interface AdminStateContextType {
     fields?: FormFieldType[];
     schema?: Record<string, z.ZodType<any, any, any>>;
     activeRelationalConfigs?: ConfigTypeClient<any, string>[];
-    state?: Record<string, any>;
+    state?: FormStateViewDictType;
     error?:
       | {
           message: string;

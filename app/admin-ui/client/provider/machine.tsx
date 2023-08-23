@@ -2,7 +2,9 @@ import { LL } from "@/lib/utils";
 import { assign, createMachine } from "xstate";
 import { serverAction } from "../../server/actions";
 import {
+  ConfigTypeClient,
   ConfigTypeDictClient,
+  FormStateViewDictType,
   ICommand,
   IDataValue,
 } from "../admin-utils/base-types";
@@ -188,10 +190,21 @@ export const adminMachine = createMachine(
             initial: "editing",
             states: {
               editing: {
+                initial: "idle",
+
                 on: {
-                  CRUD_CANCEL: {
-                    target: "#admin-machine.ready.waiting",
-                  },
+                  CRUD_CANCEL: [
+                    {
+                      cond: (c) =>
+                        c.form?.activeRelationalConfigs?.length === 1,
+                      target: "#admin-machine.ready.showForm.editing",
+                      actions: ["resetToOriginForm"],
+                    },
+                    {
+                      target: "#admin-machine.ready.waiting",
+                    },
+                  ],
+
                   CRUD_SAVE: {
                     target: "#admin-machine.ready.showForm.saving",
                     actions: ["crudSave"],
@@ -201,16 +214,14 @@ export const adminMachine = createMachine(
                       "#admin-machine.ready.showForm.editing.showRelationalForm",
                     actions: ["crudCreateRelational"],
                   },
-                },
-                states: {
-                  showRelationalForm: {
-                    on: {
-                      CRUD_CANCEL: {
-                        target: "#admin-machine.ready.showForm.editing",
-                        actions: ["resetToOriginForm"],
-                      },
-                    },
+                  FORM_CHANGE: {
+                    actions: ["formChange"],
                   },
+                },
+
+                states: {
+                  idle: {},
+                  showRelationalForm: {},
                 },
               },
               saving: {
@@ -226,10 +237,12 @@ export const adminMachine = createMachine(
                     if (!context.state.activeAction)
                       throw new Error("No action");
 
+                    const formState = getFormStateOfView({ context });
+
                     const res = await serverAction({
                       action: {
                         data: {
-                          ...(event as any).data.formState,
+                          ...formState,
                           id:
                             context.state.activeAction === "create"
                               ? null
@@ -249,7 +262,7 @@ export const adminMachine = createMachine(
                       cond: (c) =>
                         c.form?.activeRelationalConfigs?.length === 1,
                       target: "#admin-machine.ready.showForm.editing",
-                      actions: ["resetToOriginForm"],
+                      actions: ["resetToOriginFormAndUseCreatedValue"],
                     },
                     {
                       target: "#admin-machine.ready",
@@ -352,12 +365,13 @@ export const adminMachine = createMachine(
           ...context,
           form: {
             ...context.form,
-            title: "Edit row",
+            title: `Edit ${context.config.label}`,
+            // state: formState,
             fields: generateFields({
-              // modelSchema: context.internal.,
               modelSchema: context.internal.modelSchema,
               activeRecord: event.data.row,
               config: context.config,
+              defaultFormState: event.data.row,
             }),
           },
           state: {
@@ -373,7 +387,7 @@ export const adminMachine = createMachine(
           ...context,
           form: {
             ...context.form,
-            title: "Create row",
+            title: `Create ${context.config.label}`,
             fields: generateFields({
               // modelSchema: context.internal.,
               modelSchema: context.internal.modelSchema,
@@ -410,13 +424,27 @@ export const adminMachine = createMachine(
           context.form?.activeRelationalConfigs || [];
         acitveConfigsForModel.push(config);
 
+        const labelKey = acitveConfigsForModel[0].labelKey;
+
+        const formState = updateFormStateDict({
+          context: {
+            ...context,
+            form: {
+              ...context.form,
+              activeRelationalConfigs: acitveConfigsForModel,
+            },
+          },
+          fieldName: labelKey as string,
+          value: event.data.value,
+        });
+
         return {
           ...context,
           form: {
             ...context.form,
-            title: "Create row Relationa",
+            title: `Create ${config.label}`,
             activeRelationalConfigs: acitveConfigsForModel,
-            state: event.data.formState,
+            state: formState,
             fields: generateFields({
               modelSchema: context.internal.modelSchema,
               activeRecord: undefined,
@@ -555,37 +583,105 @@ export const adminMachine = createMachine(
       }),
 
       resetToOriginForm: assign((c, e) => {
-        const active = c.form?.activeRelationalConfigs;
-
-        const { id, ...rest } = (e as any)?.data?.data;
-
-        const fieldName = active?.[0].name as string;
-        const labelKey = active?.[0].labelKey as string;
-        const labelValue = rest[labelKey] || id;
-
-        const fieldNameFirstLetterUppercase =
-          fieldName[0].toUpperCase() + fieldName.slice(1);
-
-        // form state gets reset to origin - other relational field are not set
-        console.log(c.form?.state);
+        const { id, ...rest } = getFormStateOfView({
+          context: {
+            ...c,
+            form: {
+              ...c.form,
+              activeRelationalConfigs: undefined,
+            },
+          },
+        });
 
         return {
           ...c,
           form: {
             ...c.form,
+            title: `Create ${c.config.label}`,
             activeRelationalConfigs: undefined,
             fields: generateFields({
               modelSchema: c.internal.modelSchema,
               activeRecord: undefined,
               config: c.config,
-              defaultFormState: {
-                ...c.form?.state,
-                [fieldNameFirstLetterUppercase]: {
-                  value: id,
-                  label: labelValue,
-                },
-              },
+              defaultFormState: rest,
             }),
+          },
+        };
+      }),
+
+      resetToOriginFormAndUseCreatedValue: assign((c, e) => {
+        const eventData = e.data as any;
+        const { data } = eventData;
+
+        const { id, ...rest } = getFormStateOfView({
+          context: {
+            ...c,
+            form: {
+              ...c.form,
+              activeRelationalConfigs: undefined,
+            },
+          },
+        });
+
+        const activeConfig = c.form?.activeRelationalConfigs?.[0];
+        const fieldName = activeConfig?.model as string;
+        const labelKey = activeConfig?.labelKey as string;
+        const labelValue = data[labelKey] || id;
+
+        const defaultFormState = {
+          ...rest,
+          [fieldName]: {
+            label: labelValue,
+            value: data.id,
+          },
+        };
+
+        return {
+          ...c,
+          form: {
+            ...c.form,
+            state: c.form?.state
+              ? {
+                  ...c.form?.state,
+                  [activeConfig?.name as string]: {},
+                }
+              : undefined,
+            activeRelationalConfigs: c.form?.activeRelationalConfigs?.slice(1),
+            fields: generateFields({
+              modelSchema: c.internal.modelSchema,
+              activeRecord: undefined,
+              config: c.config,
+              defaultFormState: defaultFormState,
+            }),
+          },
+        };
+      }),
+
+      formChange: assign((c, e) => {
+        const { field, value } = e.data;
+
+        const formStateDict = updateFormStateDict({
+          context: c,
+          fieldName: field.name,
+          value,
+        });
+
+        const config = c.form?.activeRelationalConfigs?.[0] || c.config;
+
+        return {
+          ...c,
+          form: {
+            ...c.form,
+
+            fields: generateFields({
+              modelSchema: c.internal.modelSchema,
+              activeRecord: undefined,
+              config,
+              defaultFormState:
+                formStateDict[config.name as keyof typeof formStateDict],
+            }),
+
+            state: formStateDict,
           },
         };
       }),
@@ -630,6 +726,7 @@ export const adminMachine = createMachine(
           },
         };
       }),
+
       commandBarActionFired: assign((c, event) => {
         const action = event.data.action;
 
@@ -671,3 +768,52 @@ export const adminMachine = createMachine(
     },
   }
 );
+
+export const getActiveConfig = ({
+  context,
+}: {
+  context: AdminStateContextType;
+}) => {
+  const relationalConfig = context.form?.activeRelationalConfigs?.[0];
+  const config = relationalConfig || context.config;
+
+  return config;
+};
+
+export const getFormStateOfView = ({
+  context,
+}: {
+  context: AdminStateContextType;
+}): FormStateViewDictType["string"] => {
+  const config = getActiveConfig({ context });
+  const form = context.form;
+  const viewName = config.name;
+
+  const formState = form?.state?.[viewName as keyof typeof form.state];
+
+  if (!formState) return {} as FormStateViewDictType;
+
+  return formState;
+};
+
+export const updateFormStateDict = ({
+  context,
+  fieldName,
+  value,
+}: {
+  context: AdminStateContextType;
+  fieldName: string;
+  value: any;
+}): FormStateViewDictType => {
+  const formStateDict = context.form?.state || ({} as FormStateViewDictType);
+  const viewName = getActiveConfig({ context }).name;
+  const formStateOfView = getFormStateOfView({ context });
+
+  return {
+    ...formStateDict,
+    [viewName]: {
+      ...formStateOfView,
+      [fieldName]: value,
+    },
+  };
+};

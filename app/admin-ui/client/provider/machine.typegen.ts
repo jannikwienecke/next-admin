@@ -45,12 +45,14 @@ export interface Typegen0 {
     crudSaveError:
       | "error.platform.invoke-action"
       | "error.platform.invoke-delete-action";
+    formChange: "FORM_CHANGE";
     hideCommands: "CLICK_CLOSE_COMMANDS";
     init: "INIT_STATE";
     openCommandbar: "CLICK_OPEN_COMMAND_BAR";
     openCommandbarDetailFromSearch: "done.invoke.invoke-get-single-record";
     openCommandbarRelationalField: "CLICK_ON_RELATIONAL_FIELD";
-    resetToOriginForm: "CRUD_CANCEL" | "done.invoke.invoke-action";
+    resetToOriginForm: "CRUD_CANCEL";
+    resetToOriginFormAndUseCreatedValue: "done.invoke.invoke-action";
     showCommands: "CLICK_OPEN_COMMAND_BAR";
     updateData: "UPDATE_DATA";
   };
@@ -76,6 +78,7 @@ export interface Typegen0 {
     | "ready.showCommandbar.search.searching"
     | "ready.showForm"
     | "ready.showForm.editing"
+    | "ready.showForm.editing.idle"
     | "ready.showForm.editing.showRelationalForm"
     | "ready.showForm.saving"
     | "ready.waiting"
@@ -96,7 +99,7 @@ export interface Typegen0 {
               showForm?:
                 | "editing"
                 | "saving"
-                | { editing?: "showRelationalForm" };
+                | { editing?: "idle" | "showRelationalForm" };
             };
       };
   tags: never;

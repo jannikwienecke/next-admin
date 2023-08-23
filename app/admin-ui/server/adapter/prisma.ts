@@ -177,9 +177,21 @@ export const prismaGenerateDataObject = ({
 
   const keyDateUpdated = config.crud.read.mappings?.dateUpdated;
 
+  const x = fields
+    .filter((f) => f.kind === "object")
+    .map((f) => f.relationFromFields)
+    .flat();
+  console.log(x);
+
   return fields.reduce((p, currentField) => {
+    if (x.includes(currentField.name)) return p;
+    if (currentField.isList) return p;
+
     if (currentField.kind === "object") {
-      return p;
+      console.log(" ");
+      console.log("currentField", currentField.name);
+      console.log(currentField.kind);
+      console.log(currentField.isRequired);
     }
 
     let value = actionData[currentField.name];
@@ -197,18 +209,18 @@ export const prismaGenerateDataObject = ({
       value = new Date();
     }
 
-    const relationalField = fields.find(
-      (f) => f.relationFromFields?.[0] === currentField.name
-    );
+    const relationalField = currentField.relationFromFields?.length;
 
     const hasDefault = currentField?.hasDefaultValue;
 
     if (relationalField) {
+      const _value =
+        typeof value === "object" && "value" in value ? value.value : value;
       return {
         ...p,
-        [relationalField.name]: {
+        [currentField.name]: {
           connect: {
-            id: currentField.type === "Int" ? +value : value,
+            id: currentField.type === "Int" ? +_value : _value,
           },
         },
       };

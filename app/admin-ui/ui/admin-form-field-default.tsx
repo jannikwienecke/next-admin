@@ -16,7 +16,7 @@ export const FormDefaultInputField = ({
         key={props.id}
         {...props}
         onChange={(e) => onUpdate(e.target.value)}
-        value={props.value as string}
+      value={props.value as string}
         className="col-span-3"
       />
     </>

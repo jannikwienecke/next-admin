@@ -46,6 +46,10 @@ export const generateColumns = <T extends IDataValue>({
       if (baseColumn.isList === true) {
         return false;
       }
+      if (baseColumn.hasDefaultValue === true) {
+        return false;
+      }
+
       if (
         customColumns.find(
           (customColumn) => customColumn.accessorKey === baseColumn.name
@@ -301,16 +305,12 @@ export const generateFields = ({
     fieldToHide ? [...fieldToHide, "id"] : ["id"]
   ) as string[];
 
-  console.log(modelSchema.columns.map((f) => f.name));
-
   return modelSchema.columns
     .filter((col) => !_fieldsToHide.includes(col.name))
     .filter((col) => !baseColumnRelationFields.includes(col.name))
     .filter((col) => col.isList === false)
     .filter((col) => col.hasDefaultValue === false)
     .map((col) => {
-      console.log(col.name);
-
       const value = activeRecord?.[col.name];
 
       let type = col.type as FormFieldType["type"];
@@ -343,12 +343,10 @@ export const generateFields = ({
         }
       }
 
-      console.log({ name });
-
       return {
         relation,
         name,
-        value: undefined,
+        value: defaultValue,
         defaultValue,
         required: col.isRequired,
         type,
