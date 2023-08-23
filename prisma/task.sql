@@ -54,11 +54,6 @@ CREATE TABLE "public"."ITaskTag" (
 CREATE UNIQUE INDEX "TaskTag_tagId_taskId" ON "public"."ITaskTag"("tagId","taskId");
 
 
--- -- 
---   "date_created" timestamp(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP,
---     "date_modified" timestamp(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
--- add fields date_created and date_modified to all tables
 ALTER TABLE "public"."IStatus" ADD COLUMN "date_created" timestamp(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP;
 ALTER TABLE "public"."IStatus" ADD COLUMN "date_modified" timestamp(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP;
 
@@ -70,3 +65,29 @@ ALTER TABLE "public"."ITask" ADD COLUMN "date_modified" timestamp(3)  NOT NULL D
 
 ALTER TABLE "public"."ITag" ADD COLUMN "date_created" timestamp(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP;
 ALTER TABLE "public"."ITag" ADD COLUMN "date_modified" timestamp(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+-- create 3 projects
+INSERT INTO "public"."IProject" ("name", "description") VALUES ('Project 1', 'This is the first project');
+INSERT INTO "public"."IProject" ("name", "description") VALUES ('Project 2', 'This is the second project');
+INSERT INTO "public"."IProject" ("name", "description") VALUES ('Project 3', 'This is the third project');
+
+-- create 3 statuses
+INSERT INTO "public"."IStatus" ("label") VALUES ('To Do');
+INSERT INTO "public"."IStatus" ("label") VALUES ('In Progress');
+INSERT INTO "public"."IStatus" ("label") VALUES ('Done');
+
+-- create 3 tags
+INSERT INTO "public"."ITag" ("label") VALUES ('Tag 1');
+INSERT INTO "public"."ITag" ("label") VALUES ('Tag 2');
+INSERT INTO "public"."ITag" ("label") VALUES ('Tag 3');
+
+-- create 3 tasks
+INSERT INTO "public"."ITask" ("title", "description", "statusId", "projectId") VALUES ('Task 1', 'This is the first task', 1, 1);
+INSERT INTO "public"."ITask" ("title", "description", "statusId", "projectId") VALUES ('Task 2', 'This is the second task', 2, 2);
+INSERT INTO "public"."ITask" ("title", "description", "statusId", "projectId") VALUES ('Task 3', 'This is the third task', 3, 3);
+
+-- create 3 task tags
+INSERT INTO "public"."ITaskTag" ("tagId", "taskId") VALUES (1, 1);
+INSERT INTO "public"."ITaskTag" ("tagId", "taskId") VALUES (2, 2);
+INSERT INTO "public"."ITaskTag" ("tagId", "taskId") VALUES (2, 3);
+```

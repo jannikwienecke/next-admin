@@ -383,6 +383,8 @@ export const adminMachine = createMachine(
       }),
 
       crudCreate: assign((context, event) => {
+        const formStateOfView = getFormStateOfView({ context });
+
         return {
           ...context,
           form: {
@@ -393,6 +395,7 @@ export const adminMachine = createMachine(
               modelSchema: context.internal.modelSchema,
               activeRecord: undefined,
               config: context.config,
+              defaultFormState: formStateOfView,
             }),
           },
           state: {
@@ -643,7 +646,7 @@ export const adminMachine = createMachine(
             state: c.form?.state
               ? {
                   ...c.form?.state,
-                  [activeConfig?.name as string]: {},
+                  // [activeConfig?.name as string]: {},
                 }
               : undefined,
             activeRelationalConfigs: c.form?.activeRelationalConfigs?.slice(1),
