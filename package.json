@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "e2e": "start-server-and-test dev http://localhost:3000 \"cypress open --e2e\"",
+    "e2e:headless": "start-server-and-test dev http://localhost:3000 \"cypress run --e2e\"",
+    "seed:testing": "bash prisma/scripts/init-task.sh"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.2.0",
@@ -36,7 +39,7 @@
     "cmdk": "^0.2.0",
     "eslint": "8.46.0",
     "eslint-config-next": "13.4.13",
-    "next": "13.4.13",
+    "next": "^13.4.20-canary.2",
     "next-themes": "^0.2.1",
     "postcss": "8.4.27",
     "prisma": "^4.16.2",
@@ -49,5 +52,12 @@
     "typescript": "5.1.6",
     "xstate": "^4.38.2",
     "zod": "^3.21.4"
+  },
+  "devDependencies": {
+    "@types/node": "18.0.6",
+    "@types/react": "18.0.15",
+    "@types/react-dom": "18.0.6",
+    "cypress": "12.3.0",
+    "start-server-and-test": "1.15.2"
   }
 }
