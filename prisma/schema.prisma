@@ -32,7 +32,6 @@ model Color {
   id       Int        @id @default(autoincrement())
   name     String
   OrderTag OrderTag[]
-  Status   Status[]
   Tag      Tag[]
 }
 
@@ -296,33 +295,41 @@ model OrderReminder {
 }
 
 model IProject {
-  id          Int     @id @default(autoincrement())
-  name        String
-  description String?
-  ITask       ITask[]
+  id            Int      @id @default(autoincrement())
+  name          String
+  description   String?
+  date_created  DateTime @default(now())
+  date_modified DateTime @default(now())
+  ITask         ITask[]
 }
 
 model IStatus {
-  id    Int     @id @default(autoincrement())
-  label String
-  ITask ITask[]
+  id            Int      @id @default(autoincrement())
+  label         String
+  date_created  DateTime @default(now())
+  date_modified DateTime @default(now())
+  ITask         ITask[]
 }
 
 model ITag {
-  id       Int        @id @default(autoincrement())
-  label    String
-  ITaskTag ITaskTag[]
+  id            Int        @id @default(autoincrement())
+  label         String
+  date_created  DateTime   @default(now())
+  date_modified DateTime   @default(now())
+  ITaskTag      ITaskTag[]
 }
 
 model ITask {
-  id          Int        @id @default(autoincrement())
-  title       String
-  description String?
-  statusId    Int
-  projectId   Int
-  IProject    IProject   @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  IStatus     IStatus    @relation(fields: [statusId], references: [id], onDelete: Cascade)
-  ITaskTag    ITaskTag[]
+  id            Int        @id @default(autoincrement())
+  title         String
+  description   String?
+  statusId      Int
+  projectId     Int
+  date_created  DateTime   @default(now())
+  date_modified DateTime   @default(now())
+  IProject      IProject   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  IStatus       IStatus    @relation(fields: [statusId], references: [id], onDelete: Cascade)
+  ITaskTag      ITaskTag[]
 }
 
 model ITaskTag {
@@ -333,17 +340,4 @@ model ITaskTag {
   ITask  ITask @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
   @@unique([tagId, taskId], map: "TaskTag_tagId_taskId")
-}
-
-model Project {
-  id          Int     @id @default(autoincrement())
-  name        String
-  description String?
-}
-
-model Status {
-  id      Int    @id @default(autoincrement())
-  label   String
-  colorId Int
-  Color   Color  @relation(fields: [colorId], references: [id], onDelete: Cascade)
 }

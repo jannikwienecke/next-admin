@@ -1,5 +1,8 @@
+import { AppRouterInstance } from "next/dist/shared/lib/app-router-context";
 import {
+  ClientConfigServer,
   ConfigTypeDictClient,
+  ICommand,
   IDataValue,
   ModelSchema,
   SortingProps,
@@ -7,6 +10,9 @@ import {
 } from "../admin-utils/base-types";
 
 export type AdminStateEvents =
+  | {
+      type: "TEST";
+    }
   | {
       type: "INIT_STATE";
       data: {
@@ -16,6 +22,8 @@ export type AdminStateEvents =
         modelSchema: ModelSchema;
         view: string;
         filters: TableFilterProps;
+        router: AppRouterInstance;
+        serverConfig: ClientConfigServer;
       };
     }
   | {
@@ -60,5 +68,36 @@ export type AdminStateEvents =
       type: "CLICK_SORTING";
       data: {
         sorting: SortingProps;
+      };
+    }
+  | {
+      type: "CLICK_ON_RELATIONAL_FIELD";
+      data: {
+        row: IDataValue;
+        name: string;
+      };
+    }
+  | {
+      type: "CLICK_OPEN_COMMAND_BAR";
+    }
+  | {
+      type: "CLICK_CLOSE_COMMAND_BAR";
+    }
+  | {
+      type: "CLICK_CLOSE_COMMANDS";
+    }
+  | {
+      type: "CLICK_ENTER_KEY_COMMAND_BAR";
+    }
+  | {
+      type: "COMMAND_BAR_ACTION_FIRED";
+      data: {
+        action: ICommand;
+      };
+    }
+  | {
+      type: "COMMAND_BAR_SELECT_ROW";
+      data: {
+        row: IDataValue;
       };
     };

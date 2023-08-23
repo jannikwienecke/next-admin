@@ -12,7 +12,7 @@ export default createClientView<IProject, keyof typeof prisma>({
   // baseView
   table: {
     columns: [],
-    filter: [],
+    filter: ["name"],
   },
   form: {
     // fieldToHide: ["Tag"],

@@ -4,25 +4,33 @@ import { CellContext, ColumnDef, HeaderContext } from "@tanstack/react-table";
 import React from "react";
 import { AdminTableColumnHeader } from "../../ui/admin-table-column-header";
 import {
+  ClientConfigServer,
   ColumnSchema,
   ColumnTypeTest,
   ConfigTypeClient,
   ConfigTypeDictClient,
+  ConfigTypeServer,
   FormFieldType,
+  ICommand,
   IDataValue,
+  MetaDataType,
   ModelSchema,
+  RelationalFieldClickHandlerProps,
   SidebarCategoryProps,
 } from "./base-types";
 import { z } from "zod";
+import { AdminStateContextType } from "../provider/state-context";
 
 export const generateColumns = <T extends IDataValue>({
   customColumns,
   baseColumns,
   columnsToHide,
+  onClickRelationalField,
 }: {
   customColumns: ColumnTypeTest<T>[];
   baseColumns: ColumnSchema[];
   columnsToHide: string[];
+  onClickRelationalField: (options: RelationalFieldClickHandlerProps) => void;
 }): ColumnDef<T>[] => {
   const baseColumnRelationFields = baseColumns
     .map((c) => c.relationFromFields?.[0])
@@ -119,6 +127,13 @@ export const generateColumns = <T extends IDataValue>({
           ? ({ row }: CellContext<any, any>) => {
               return (
                 <RelationalFieldWrapper
+                  onClick={() =>
+                    onClickRelationalField({
+                      col: columnConfig,
+                      row,
+                      name: columnConfig.accessorKey as string,
+                    })
+                  }
                   column={columnConfig}
                   row={row}
                   baseColumns={baseColumns}
@@ -137,6 +152,13 @@ export const generateColumns = <T extends IDataValue>({
 
               return (
                 <RelationalFieldWrapper
+                  onClick={() =>
+                    onClickRelationalField({
+                      col: columnConfig,
+                      row,
+                      name: columnConfig.accessorKey as string,
+                    })
+                  }
                   column={columnConfig}
                   row={row}
                   baseColumns={baseColumns}
@@ -161,11 +183,13 @@ const RelationalFieldWrapper = ({
   baseColumns,
   column,
   children,
+  onClick,
 }: {
   baseColumns: ColumnSchema[];
   row: any;
   column: ColumnTypeTest<any>;
   children: React.ReactNode;
+  onClick: () => void;
 }) => {
   const baseColumn = baseColumns.find((c) => c.name === column.accessorKey);
 
@@ -180,7 +204,7 @@ const RelationalFieldWrapper = ({
   return (
     <div
       onClick={() => {
-        alert(`Go to ${name} ${fieldId}`);
+        onClick();
       }}
       className="cursor-pointer hover:underline"
     >
@@ -251,7 +275,7 @@ export const generateNavigationCategories = ({
 //   username: z.string().min(2).max(50),
 // });
 
-export const generateFormFields = ({
+export const generateFields = ({
   modelSchema: moderlSchamDict,
   config,
   activeRecord,
@@ -276,16 +300,23 @@ export const generateFormFields = ({
   const _fieldsToHide = (
     fieldToHide ? [...fieldToHide, "id"] : ["id"]
   ) as string[];
+
+  console.log(modelSchema.columns.map((f) => f.name));
+
   return modelSchema.columns
     .filter((col) => !_fieldsToHide.includes(col.name))
     .filter((col) => !baseColumnRelationFields.includes(col.name))
     .filter((col) => col.isList === false)
+    .filter((col) => col.hasDefaultValue === false)
     .map((col) => {
+      console.log(col.name);
+
       const value = activeRecord?.[col.name];
 
       let type = col.type as FormFieldType["type"];
       let relation = undefined as FormFieldType["relation"];
       let name = col.name;
+
       const defaultFormStateValue =
         defaultFormState && defaultFormState[col.name];
 
@@ -302,13 +333,17 @@ export const generateFormFields = ({
           name: col.relationFromFields[0],
           modelName: col.name,
         };
-        name = col.relationFromFields[0];
+        // name = col.relationFromFields[0];
 
-        defaultValue = {
-          label: activeRecord?.[col.name],
-          value: activeRecord?.[col.relationFromFields[0]],
-        };
+        if (activeRecord) {
+          defaultValue = {
+            label: activeRecord?.[col.name],
+            value: activeRecord?.[col.relationFromFields[0]],
+          };
+        }
       }
+
+      console.log({ name });
 
       return {
         relation,
@@ -323,4 +358,77 @@ export const generateFormFields = ({
         }`,
       };
     });
+};
+
+export const generateCommandbar = () => {
+  return {};
+};
+
+export const getLabelValue = ({
+  config,
+  activeRecord,
+}: {
+  config: ConfigTypeClient<any, string>;
+  activeRecord: IDataValue;
+}) => {
+  const labelKey = config.labelKey || "name" || "title" || "label";
+  const value = activeRecord?.[labelKey as string];
+
+  if (!value) throw new Error(`No Labelkey found: ${labelKey as string}`);
+
+  return value;
+};
+
+export const getMetaData = ({
+  config,
+  activeRecord,
+}: {
+  config: ClientConfigServer;
+  activeRecord: IDataValue;
+}): MetaDataType => {
+  const { dateCreated, dateUpdated } = config.mappings || {};
+
+  return {
+    dateCreated: activeRecord[dateCreated as string],
+    dateUpdated: activeRecord[dateUpdated as string],
+    lastUpdatedBy: "",
+  };
+};
+
+export const generateCommandbarActions = ({
+  config,
+}: {
+  config: ConfigTypeDictClient;
+}): AdminStateContextType["commandbar"]["view"]["commands"] => {
+  const navigationActions: ICommand[] = Object.values(config).map((c) => {
+    return {
+      action: {
+        type: "NAVIGATION",
+        to: {
+          view: c.name,
+        },
+      },
+      label: c.label,
+      icon: c.navigation.icon,
+    };
+  });
+
+  return {
+    actions: [],
+    suggestions: [...navigationActions],
+  };
+};
+
+export const generateCommandSearchView = ({
+  config,
+  viewName,
+}: {
+  config: ConfigTypeDictClient;
+  viewName: string;
+}): AdminStateContextType["commandbar"]["view"]["search"] => {
+  const activeConfig = config[viewName as keyof ConfigTypeDictClient];
+
+  return {
+    view: "full",
+  };
 };

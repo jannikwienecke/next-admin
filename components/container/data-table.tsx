@@ -92,7 +92,6 @@ export function DataTable<TData extends IDataValue, TValue>({
     getFacetedUniqueValues: getFacetedUniqueValues(),
   });
 
-  // return <></>;
   return (
     <div className="space-y-4">
       {components.Toolbar ? <components.Toolbar table={table} /> : null}
@@ -121,8 +120,6 @@ export function DataTable<TData extends IDataValue, TValue>({
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                // row.cell
-
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}

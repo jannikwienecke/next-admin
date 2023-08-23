@@ -22,12 +22,13 @@ export const generateModelSchema = ({
         return {
           name: field.name,
           kind: field.kind,
-          isRequired: field.isRequired,
+          isRequired: field.hasDefaultValue ? false : field.isRequired,
           isUnique: field.isUnique,
           isId: field.isId,
           type: field.type,
           relationFromFields: field.relationFromFields || [],
           isList: field.isList,
+          hasDefaultValue: field.hasDefaultValue,
         };
       });
 

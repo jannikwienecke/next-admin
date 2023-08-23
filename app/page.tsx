@@ -6,12 +6,17 @@ import { serverConfig } from "./index.server";
 import { waitAll, waitFor } from "@/lib/utils";
 
 export default async function Home(props: BasePageProps) {
-  const [{ data, modelSchema, filters }] = await waitAll([
+  const [{ data, modelSchema, filters, configForClient }] = await waitAll([
     loader(props),
     waitFor(500),
   ]);
 
   return (
-    <AdminDashboard filters={filters} data={data} modelSchema={modelSchema} />
+    <AdminDashboard
+      configForClient={configForClient}
+      filters={filters}
+      data={data}
+      modelSchema={modelSchema}
+    />
   );
 }

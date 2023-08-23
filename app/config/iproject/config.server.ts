@@ -11,6 +11,10 @@ export default createServerView<IProject, "iProject">({
       },
       labelKey: "name",
       relationalFields: {},
+      mappings: {
+        dateCreated: "date_created",
+        dateUpdated: "date_modified",
+      },
     },
   },
 });

@@ -11,17 +11,18 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Spinner } from "@/components/ui/spinner";
+import { FormEvent } from "react";
+import { UseFormReturn, useForm } from "react-hook-form";
 import { FormFieldType } from "../client/admin-utils/base-types";
 import { useAdminState } from "../client/provider/state";
 import { FormDefaultInputField } from "./admin-form-field-default";
 import { RelationFormInputField } from "./admin-form-field-relational";
-import { UseFormReturn } from "react-hook-form";
-import { FormEvent } from "react";
 
 const FormFieldDict: {
   [key in FormFieldType["type"]]: (
     props: FormFieldType & {
       onAddNew: (props: { value: string }) => void;
+      onUpdate: (value: any) => void;
     }
   ) => JSX.Element;
 } = {
@@ -31,66 +32,55 @@ const FormFieldDict: {
 };
 
 export function AdminForm({
-  form,
   saving,
   submitForm,
   fields,
 }: {
   saving: boolean;
-  form: UseFormReturn<any, any, undefined>;
   submitForm: (event: FormEvent<HTMLFormElement>) => void;
   fields: FormFieldType[];
 }) {
   const { emiiter, form: formState } = useAdminState();
+
+  const form = useForm();
+
   return (
     <Form {...form}>
       <form onSubmit={submitForm} className="space-y-8">
         {fields.map((f) => {
+          const Component = FormFieldDict[f.type];
+
           return (
-            <FormField
-              key={f.name}
-              control={form.control}
-              name={f.name as any}
-              render={({ field, fieldState }) => {
-                const Component = FormFieldDict[f.type];
-
-                if (!Component) {
-                  // throw new Error(`No component found for ${f.type}`);
-                  return <></>;
-                }
-
-                return (
-                  <FormItem>
-                    <FormLabel>{f.label}</FormLabel>
-                    <FormControl>
-                      <Component
-                        {...field}
-                        {...f}
-                        id={
-                          formState?.activeRelationalConfigs
-                            ? `${formState.activeRelationalConfigs[0].model}_${f.name}`
-                            : (f.name as any)
-                        }
-                        onAddNew={(props) => {
-                          if (!f.relation) return;
-                          emiiter.clickCreateRelationalValue({
-                            modelName: f.relation?.modelName,
-                            formState: form.getValues(),
-                            ...props,
-                          });
-                        }}
-                      />
-                    </FormControl>
-                    {/* <FormDescription>
-                    This is your public display name.
-                  </FormDescription> */}
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
-            />
+            <>
+              <FormItem>
+                <FormLabel>{f.label}</FormLabel>
+                <Component
+                  {...f}
+                  id={
+                    formState?.activeRelationalConfigs
+                      ? `${formState.activeRelationalConfigs[0].model}_${f.name}`
+                      : (f.name as any)
+                  }
+                  onAddNew={(props) => {
+                    // if (!f.relation) return;
+                    // emiiter.clickCreateRelationalValue({
+                    //   modelName: f.relation?.modelName,
+                    //   formState: form.getValues(),
+                    //   ...props,
+                    // });
+                  }}
+                  onUpdate={(value) => {
+                    emiiter.changeFormState({
+                      field: f,
+                      value,
+                    });
+                  }}
+                />
+              </FormItem>
+            </>
           );
         })}
+
         <Slideover.Footer>
           <>
             <Button

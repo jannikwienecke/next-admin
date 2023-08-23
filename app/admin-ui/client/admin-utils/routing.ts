@@ -125,6 +125,8 @@ export class Routing implements IRouting {
     return this;
   }
 
+  // updateCommandbar()
+
   updateQuery(query: string) {
     this.searchParamsHelper.set("query", query);
     return this;

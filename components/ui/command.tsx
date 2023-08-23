@@ -26,6 +26,7 @@ Command.displayName = CommandPrimitive.displayName;
 interface CommandDialogProps extends DialogProps {}
 
 const CommandDialog = ({ children, ...props }: CommandDialogProps) => {
+  // const [value, setValue] = React.useState("");
   return (
     <Dialog {...props}>
       <DialogContent className="overflow-hidden p-0 shadow-lg">
@@ -62,7 +63,7 @@ const CommandList = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <CommandPrimitive.List
     ref={ref}
-    className={cn("max-h-[300px] overflow-y-auto overflow-x-hidden", className)}
+    className={cn("overflow-y-auto overflow-x-hidden", className)}
     {...props}
   />
 ));

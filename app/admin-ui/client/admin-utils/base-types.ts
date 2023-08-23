@@ -90,6 +90,13 @@ export interface ConfigType<T extends IDataValue> {
   };
 }
 
+export type MappingType<T = any> = {
+  dateCreated?: keyof T;
+  dateUpdated?: keyof T;
+  grouping?: keyof T;
+  tags?: keyof T;
+};
+
 export interface ConfigTypeServer<T extends IDataValue, ModelName> {
   model: ModelName;
   name: string;
@@ -106,6 +113,7 @@ export interface ConfigTypeServer<T extends IDataValue, ModelName> {
           labelKey: string;
         };
       }>;
+      mappings?: MappingType<T>;
     };
   };
   // // key used to display the date item
@@ -152,6 +160,7 @@ export interface ColumnSchema {
   type: string;
   relationFromFields: string[];
   isList: boolean;
+  hasDefaultValue: boolean;
 }
 
 export type ModelSchema = {
@@ -198,4 +207,41 @@ export type TableFilterProps = FilterType[];
 export type SortingProps = {
   id: string;
   direction: "asc" | "desc";
+};
+
+export type RelationalFieldClickHandlerProps = {
+  col: ColumnTypeTest<any>;
+  row: IDataValue;
+  name: string;
+};
+
+export type ICommandType = "NAVIGATION" | "STATE_ACTION" | "SERVER_ACTION";
+
+export type ICommandAction = {
+  type: "NAVIGATION";
+  to: {
+    view: string;
+  };
+};
+
+export type ICommand = {
+  action: ICommandAction;
+  label: string;
+  icon?: React.ComponentType<any>;
+};
+
+// Go To Projects
+// Go To Tasks
+// what we have is a action that is a navigation with the
+// label go to projects and the icon defined in the navigation
+//
+
+export type MetaDataType = {
+  dateCreated: string;
+  dateUpdated: string;
+  lastUpdatedBy: string;
+};
+
+export type ClientConfigServer = {
+  mappings?: MappingType<any>;
 };

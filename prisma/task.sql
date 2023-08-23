@@ -53,3 +53,20 @@ CREATE TABLE "public"."ITaskTag" (
 
 CREATE UNIQUE INDEX "TaskTag_tagId_taskId" ON "public"."ITaskTag"("tagId","taskId");
 
+
+-- -- 
+--   "date_created" timestamp(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP,
+--     "date_modified" timestamp(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+-- add fields date_created and date_modified to all tables
+ALTER TABLE "public"."IStatus" ADD COLUMN "date_created" timestamp(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE "public"."IStatus" ADD COLUMN "date_modified" timestamp(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+ALTER TABLE "public"."IProject" ADD COLUMN "date_created" timestamp(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE "public"."IProject" ADD COLUMN "date_modified" timestamp(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+ALTER TABLE "public"."ITask" ADD COLUMN "date_created" timestamp(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE "public"."ITask" ADD COLUMN "date_modified" timestamp(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+ALTER TABLE "public"."ITag" ADD COLUMN "date_created" timestamp(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE "public"."ITag" ADD COLUMN "date_modified" timestamp(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP;

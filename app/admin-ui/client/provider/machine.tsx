@@ -1,17 +1,26 @@
 import { LL } from "@/lib/utils";
-import { actions, assign, createMachine } from "xstate";
+import { assign, createMachine } from "xstate";
 import { serverAction } from "../../server/actions";
 import {
+  ConfigTypeDictClient,
+  ICommand,
+  IDataValue,
+} from "../admin-utils/base-types";
+import {
   generateColumns,
-  generateFormFields,
+  generateCommandSearchView,
+  generateCommandbarActions,
+  generateFields,
   generateNavigationCategories,
+  getLabelValue,
+  getMetaData,
 } from "../admin-utils/utils";
 import { AdminStateEvents } from "./events";
 import {
   AdminStateContextType,
   DEFAULT_ADMIN_STATE_CONTEXT,
 } from "./state-context";
-import { title } from "process";
+import { getPrismaModelSchema } from "../../server/utils";
 
 export const adminMachine = createMachine(
   {
@@ -53,6 +62,14 @@ export const adminMachine = createMachine(
             target: "ready.deleting",
             actions: ["crudDelete"],
           },
+          CLICK_OPEN_COMMAND_BAR: {
+            target: "ready.showCommandbar",
+            actions: ["openCommandbar"],
+          },
+          CLICK_ON_RELATIONAL_FIELD: {
+            target: "#admin-machine.ready.showCommandbar.detail",
+            actions: ["openCommandbarRelationalField"],
+          },
         },
         initial: "waiting",
 
@@ -79,6 +96,94 @@ export const adminMachine = createMachine(
               },
             },
           },
+
+          showCommandbar: {
+            initial: "commands",
+            on: {
+              CLICK_OPEN_COMMAND_BAR: {
+                actions: ["showCommands"],
+              },
+              CLICK_CLOSE_COMMANDS: {
+                actions: ["hideCommands"],
+              },
+            },
+            states: {
+              commands: {
+                on: {
+                  COMMAND_BAR_ACTION_FIRED: {
+                    actions: ["commandBarActionFired"],
+                    target: "search",
+                  },
+                  CLICK_CLOSE_COMMAND_BAR: {
+                    target: "#admin-machine.ready",
+                  },
+                },
+              },
+
+              detail: {
+                on: {
+                  CLICK_CLOSE_COMMAND_BAR: {
+                    target: "#admin-machine.ready.showCommandbar.commands",
+                  },
+                },
+              },
+              search: {
+                on: {
+                  CLICK_CLOSE_COMMAND_BAR: {
+                    target: "#admin-machine.ready.showCommandbar.commands",
+                  },
+                  COMMAND_BAR_SELECT_ROW: {
+                    target:
+                      "#admin-machine.ready.showCommandbar.search.getSingleRecord",
+                  },
+                },
+
+                initial: "searching",
+                states: {
+                  searching: {},
+                  detail: {
+                    on: {
+                      CLICK_CLOSE_COMMAND_BAR: {
+                        target: "#admin-machine.ready.showCommandbar.search",
+                      },
+                    },
+                  },
+                  getSingleRecord: {
+                    invoke: {
+                      id: "invoke-get-single-record",
+                      src: async (context, event) => {
+                        LL("invoke-action GET_SINGLE_RECORD", {
+                          context,
+                          event,
+                        });
+
+                        if (!context.state.commandbar.activeConfig) {
+                          throw new Error("No activeConfig");
+                        }
+
+                        return (await serverAction({
+                          action: {
+                            data: (event as any).data.row,
+                            name: "getSingleRecord",
+                          },
+                          viewName: context.state.commandbar.activeConfig.name,
+                        })) as any;
+                      },
+                      onDone: {
+                        target:
+                          "#admin-machine.ready.showCommandbar.search.detail",
+                        actions: ["openCommandbarDetailFromSearch"],
+                      },
+                      onError: {
+                        actions: ["crudReadError"],
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+
           showForm: {
             initial: "editing",
             states: {
@@ -111,13 +216,17 @@ export const adminMachine = createMachine(
               saving: {
                 invoke: {
                   id: "invoke-action",
-                  src: async (context, event, x) => {
-                    LL("invoke-action", { context, event, x });
+                  src: async (context, event) => {
+                    LL("invoke-action", { context, event });
+
+                    const viewName =
+                      context.form?.activeRelationalConfigs?.[0]?.name ||
+                      context.config.name;
 
                     if (!context.state.activeAction)
                       throw new Error("No action");
 
-                    await serverAction({
+                    const res = await serverAction({
                       action: {
                         data: {
                           ...(event as any).data.formState,
@@ -128,10 +237,12 @@ export const adminMachine = createMachine(
                         },
                         name: context.state.activeAction,
                       },
-                      viewName:
-                        context.form?.activeRelationalConfigs?.[0]?.name ||
-                        context.config.name,
+                      viewName,
                     });
+                    return {
+                      data: res,
+                      event,
+                    };
                   },
                   onDone: [
                     {
@@ -178,9 +289,13 @@ export const adminMachine = createMachine(
           customColumns: activeClient.table.columns,
           baseColumns: modelSchema[activeClient.model]?.columns,
           columnsToHide: (activeClient.table.columnsToHide || []) as string[],
+          onClickRelationalField: (props) => {
+            var evt = new CustomEvent("MyEventType", { detail: props });
+            window.dispatchEvent(evt);
+          },
         });
 
-        const fields = generateFormFields({
+        const fields = generateFields({
           modelSchema,
           config: activeClient,
         });
@@ -191,6 +306,8 @@ export const adminMachine = createMachine(
             config: event.data.config,
             data: event.data.data,
             modelSchema,
+            router: event.data.router,
+            clientConfigServer: event.data.serverConfig,
           },
           config: activeClient,
           data: event.data.data,
@@ -236,7 +353,7 @@ export const adminMachine = createMachine(
           form: {
             ...context.form,
             title: "Edit row",
-            fields: generateFormFields({
+            fields: generateFields({
               // modelSchema: context.internal.,
               modelSchema: context.internal.modelSchema,
               activeRecord: event.data.row,
@@ -257,7 +374,7 @@ export const adminMachine = createMachine(
           form: {
             ...context.form,
             title: "Create row",
-            fields: generateFormFields({
+            fields: generateFields({
               // modelSchema: context.internal.,
               modelSchema: context.internal.modelSchema,
               activeRecord: undefined,
@@ -300,7 +417,7 @@ export const adminMachine = createMachine(
             title: "Create row Relationa",
             activeRelationalConfigs: acitveConfigsForModel,
             state: event.data.formState,
-            fields: generateFormFields({
+            fields: generateFields({
               modelSchema: context.internal.modelSchema,
               activeRecord: undefined,
               config,
@@ -311,6 +428,73 @@ export const adminMachine = createMachine(
             ...context.state,
             activeRow: undefined,
             activeAction: "create" as const,
+          },
+        };
+      }),
+
+      openCommandbarRelationalField: assign((c, event) => {
+        if (!c.state?.commandbar.activeConfig?.name) {
+          throw new Error("No activeConfig");
+        }
+
+        return {
+          ...c,
+          commandbar: {
+            ...c.commandbar,
+            view: {
+              detail: {
+                type: "detail" as const,
+                view: event.data.name,
+                activeItem: event.data.row,
+                meta: getMetaData({
+                  config: c.internal.clientConfigServer,
+                  activeRecord: event.data.row,
+                }),
+                label: getLabelValue({
+                  config: c.state?.commandbar.activeConfig,
+                  activeRecord: event.data.row,
+                }),
+                fields: generateFields({
+                  modelSchema: c.internal.modelSchema,
+                  activeRecord: event.data.row,
+                  config: c.state?.commandbar.activeConfig,
+                }),
+              },
+            },
+          },
+        };
+      }),
+
+      openCommandbarDetailFromSearch: assign((c, event) => {
+        if (!c.state?.commandbar.activeConfig?.name) {
+          throw new Error("No activeConfig");
+        }
+
+        return {
+          ...c,
+          commandbar: {
+            ...c.commandbar,
+            view: {
+              ...c.commandbar.view,
+              detail: {
+                label: getLabelValue({
+                  config: c.state?.commandbar.activeConfig,
+                  activeRecord: event.data as IDataValue,
+                }),
+                meta: getMetaData({
+                  config: c.internal.clientConfigServer,
+                  activeRecord: event.data as IDataValue,
+                }),
+                type: "detail" as const,
+                view: c.state?.commandbar.activeConfig?.name,
+                activeItem: event.data as IDataValue,
+                fields: generateFields({
+                  modelSchema: c.internal.modelSchema,
+                  activeRecord: event.data as IDataValue,
+                  config: c.state?.commandbar.activeConfig,
+                }),
+              },
+            },
           },
         };
       }),
@@ -352,18 +536,135 @@ export const adminMachine = createMachine(
         };
       }),
 
-      resetToOriginForm: assign((c) => {
+      crudReadError: assign((context, event) => {
+        const message = (event.data as any)?.message || "Unknown error";
+
+        return {
+          ...context,
+          state: {
+            ...context.state,
+            commandbar: {
+              ...context.state.commandbar,
+              error: {
+                message,
+              },
+              //
+            },
+          },
+        };
+      }),
+
+      resetToOriginForm: assign((c, e) => {
+        const active = c.form?.activeRelationalConfigs;
+
+        const { id, ...rest } = (e as any)?.data?.data;
+
+        const fieldName = active?.[0].name as string;
+        const labelKey = active?.[0].labelKey as string;
+        const labelValue = rest[labelKey] || id;
+
+        const fieldNameFirstLetterUppercase =
+          fieldName[0].toUpperCase() + fieldName.slice(1);
+
+        // form state gets reset to origin - other relational field are not set
+        console.log(c.form?.state);
+
         return {
           ...c,
           form: {
             ...c.form,
             activeRelationalConfigs: undefined,
-            fields: generateFormFields({
+            fields: generateFields({
               modelSchema: c.internal.modelSchema,
-              // activeRecord: undefined,
+              activeRecord: undefined,
               config: c.config,
-              defaultFormState: c.form?.state,
+              defaultFormState: {
+                ...c.form?.state,
+                [fieldNameFirstLetterUppercase]: {
+                  value: id,
+                  label: labelValue,
+                },
+              },
             }),
+          },
+        };
+      }),
+
+      showCommands: assign((c) => {
+        return {
+          ...c,
+          state: {
+            ...c.state,
+            commandbar: {
+              ...c.state.commandbar,
+              showCommands: true,
+            },
+          },
+        };
+      }),
+
+      hideCommands: assign((c) => {
+        return {
+          ...c,
+          state: {
+            ...c.state,
+            commandbar: {
+              ...c.state.commandbar,
+              showCommands: false,
+            },
+          },
+        };
+      }),
+
+      // commandbar
+      openCommandbar: assign((c) => {
+        return {
+          ...c,
+          commandbar: {
+            ...c.commandbar,
+            view: {
+              commands: generateCommandbarActions({
+                config: c.internal.config,
+              }),
+            },
+          },
+        };
+      }),
+      commandBarActionFired: assign((c, event) => {
+        const action = event.data.action;
+
+        const isNavigation = action.action.type === "NAVIGATION";
+
+        if (!isNavigation) {
+          throw new Error(`Action type not supported: ${action.action.type}`);
+        }
+
+        if ("to" in action.action === false) {
+          throw new Error(`Action type not supported: ${action.action.type}`);
+        }
+
+        const searchView = action.action.to.view;
+        return {
+          ...c,
+          state: {
+            ...c.state,
+            commandbar: {
+              ...c.commandbar,
+              showCommands: false,
+              activeConfig:
+                c.internal.config[searchView as keyof ConfigTypeDictClient],
+            },
+          },
+          commandbar: {
+            ...c.commandbar,
+            view: {
+              ...c.commandbar.view,
+              search: generateCommandSearchView({
+                config: c.internal.config,
+                viewName: searchView,
+                // x : event.data.action.action.
+              }),
+            },
           },
         };
       }),

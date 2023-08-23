@@ -5,6 +5,7 @@ import {
   prismaDelete,
   prismaGetIdFieldType,
   prismaUpdate,
+  prismRead,
 } from "./prisma";
 
 export const pageLoader = prismaLoader;
@@ -15,4 +16,5 @@ export const crud = {
   create: prismaCreate,
   delete: prismaDelete,
   update: prismaUpdate,
+  read: prismRead,
 };

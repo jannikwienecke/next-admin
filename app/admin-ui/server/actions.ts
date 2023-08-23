@@ -7,7 +7,7 @@ import { serverConfig } from "@/app/index.server";
 import { SortingProps } from "../client/admin-utils/base-types";
 
 type Action = {
-  name: "create" | "edit" | "delete";
+  name: "create" | "edit" | "delete" | "getSingleRecord";
   data: Record<string, any>;
 };
 
@@ -30,10 +30,10 @@ export async function serverAction(props: ServerEventsProps) {
     throw new Error(`Action "${action.name}" not found`);
   }
 
-  await actionFn(props);
+  const res = await actionFn(props);
 
   revalidatePath("/");
-  return;
+  return res;
 }
 
 const _create = async ({ action, viewName }: ServerEventsProps) => {
@@ -45,7 +45,18 @@ const _create = async ({ action, viewName }: ServerEventsProps) => {
     actionData: rest,
   });
 
-  await crud.create({ data, model: config.model });
+  const newItem = await crud.create({ data, model: config.model });
+
+  const item = await _getSingleRecord({
+    viewName,
+    action: {
+      ...action,
+      data: {
+        id: newItem.id,
+      },
+    },
+  });
+  return item;
 };
 
 const _delete = async ({ action, viewName }: ServerEventsProps) => {
@@ -54,7 +65,7 @@ const _delete = async ({ action, viewName }: ServerEventsProps) => {
 
   const idFieldType = getIdFieldType({ config });
 
-  await crud.delete({
+  return await crud.delete({
     id: idFieldType === "int" ? +id : id,
     model: config.model,
   });
@@ -71,19 +82,34 @@ const _edit = async ({ action, viewName }: ServerEventsProps) => {
     actionData: rest,
   });
 
-  await crud.update({
+  return await crud.update({
     id: idFieldType === "int" ? +id : id,
     data,
     model: config.model,
   });
 };
 
+const _getSingleRecord = async ({ action, viewName }: ServerEventsProps) => {
+  const { id } = action.data || {};
+  const config = getConfigByView(serverConfig, viewName);
+
+  const idFieldType = getIdFieldType({ config });
+
+  const data = await crud.read({
+    config,
+    id: idFieldType === "int" ? +id : id,
+  });
+
+  return data;
+};
+
 const ACTION_DICT: {
-  [key in "create" | "edit" | "delete"]: (
+  [key in "create" | "edit" | "delete" | "getSingleRecord"]: (
     props: ServerEventsProps
   ) => Promise<any>;
 } = {
   create: _create,
   edit: _edit,
   delete: _delete,
+  getSingleRecord: _getSingleRecord,
 };

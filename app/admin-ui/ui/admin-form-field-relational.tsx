@@ -34,6 +34,7 @@ export const RelationFormInputField = ({
   ...props
 }: FormFieldType & {
   onAddNew: (props: { value: string }) => void;
+  onUpdate: (value: ComboboxItemProps) => void;
 }) => {
   return <AdminRelationCombobox {...props} />;
 };
@@ -41,13 +42,13 @@ export const RelationFormInputField = ({
 function AdminRelationCombobox({
   relation,
   onAddNew,
+  onUpdate,
   ...props
 }: FormFieldType & {
   onAddNew: (props: { value: string }) => void;
+  onUpdate: (value: ComboboxItemProps) => void;
 }) {
   const [open, setOpen] = React.useState(false);
-
-  const { emiiter } = useAdminState();
 
   const defaultValue: ComboboxItemProps | undefined = (
     props.defaultValue as any
@@ -121,7 +122,15 @@ function AdminRelationCombobox({
       : items;
 
   const labelRef = React.useRef("");
-  const currentLabel = _items?.find((item) => item.value === value)?.label;
+  const current = _items?.find((item) => item.value === value);
+  const currentLabel = current?.label;
+
+  const onUpdateRef = React.useRef(onUpdate);
+  React.useEffect(() => {
+    if (!current) return;
+
+    onUpdateRef.current?.(current);
+  }, [current]);
 
   return (
     <>
@@ -142,7 +151,7 @@ function AdminRelationCombobox({
           >
             {labelRef.current
               ? labelRef.current
-              : currentLabel || "Select color..."}
+              : currentLabel || `Select ${props.label}...`}
             <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>

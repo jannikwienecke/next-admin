@@ -1,4 +1,7 @@
-import { BasePageProps } from "@/app/admin-ui/client/admin-utils/base-types";
+import {
+  BasePageProps,
+  ClientConfigServer,
+} from "@/app/admin-ui/client/admin-utils/base-types";
 import {
   Routing,
   redirectToView,
@@ -68,9 +71,14 @@ export const loader = async ({ searchParams, params }: BasePageProps) => {
     serverConfig: config,
   });
 
+  const configForClient: ClientConfigServer = {
+    mappings: config.crud.read.mappings,
+  };
+
   return {
     data,
     modelSchema,
     filters,
+    configForClient,
   };
 };

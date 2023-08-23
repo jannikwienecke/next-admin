@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { AdminCommandbarEmpty } from "@/app/admin-ui/ui/admin-commandbar-empty";
 
 export interface FilterItemProps {
   label: string;
@@ -89,7 +90,8 @@ export function Filter({
           <CommandInput placeholder={title} />
 
           <CommandList>
-            <CommandEmpty>No results found.</CommandEmpty>
+            <CommandEmpty>No results found</CommandEmpty>
+
             <CommandGroup>
               {options.map((option) => {
                 const isSelected = selectedValues.has(option.value);

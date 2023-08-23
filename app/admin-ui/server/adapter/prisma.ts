@@ -4,6 +4,10 @@ import {
   ConfigTypeServer,
   SortingProps,
 } from "@/app/admin-ui/client/admin-utils/base-types";
+import { getPrismaModelSchema } from "../utils";
+import { serverConfig } from "@/app/index.server";
+import { clientConfig } from "@/app/index.client";
+import { prisma } from "@/app/db";
 
 const { client, schema } = PRODVIDER.prisma;
 
@@ -40,17 +44,19 @@ export const prismaLoader = async ({
   config,
   clientConfig,
   sorting,
+  id,
 }: {
   query: string;
-  sorting: SortingProps;
+  sorting?: SortingProps;
   config: ConfigTypeServer<any, string>;
   clientConfig: ConfigTypeClient<any, string>;
+  id?: number;
 }) => {
   const fieldsToInclude = getFieldsToInclude({ config, clientConfig });
 
   const crudRead = config.crud?.read;
 
-  const orderBy = sorting.id
+  const orderBy = sorting?.id
     ? {
         [sorting.id]: sorting.direction,
       }
@@ -70,7 +76,7 @@ export const prismaLoader = async ({
     take: 10,
     where: {
       id: {
-        equals: _id,
+        equals: _id || id || undefined,
       },
       [crudRead.labelKey]: _id
         ? undefined
@@ -99,6 +105,8 @@ export const parseDefaultLoaderData = ({
 }) => {
   const crudRead = config.crud?.read;
 
+  const currentSchema = getPrismaModelSchema(schema, config.model);
+
   return data.map((item) => {
     const values = fieldsToInclude.reduce((acc, key) => {
       const _item = item as any;
@@ -121,14 +129,36 @@ export const parseDefaultLoaderData = ({
           `Cannot find value for "${key}". Please specify a "labelKey in the serverConfig for "${config.name}"`
         );
 
+      let parsedVal = value;
+
+      // if (typeof value === 'object')
+
       return {
         ...acc,
-        [key]: value,
+        [key]: parsedVal,
       };
     }, {});
 
+    const resu = currentSchema?.fields.reduce((acc, field) => {
+      const value = item[field.name];
+
+      if (!value) return acc;
+
+      if (value instanceof Date) {
+        return {
+          ...acc,
+          [field.name]: value.toLocaleString("De-de").slice(0, 16),
+        };
+      }
+
+      return {
+        ...acc,
+        [field.name]: value,
+      };
+    }, {} as any);
+
     return {
-      ...item,
+      ...resu,
       ...values,
     };
   });
@@ -145,15 +175,17 @@ export const prismaGenerateDataObject = ({
     model: config.model,
   });
 
-  return fields.reduce((p, c) => {
-    if (c.kind === "object") {
+  const keyDateUpdated = config.crud.read.mappings?.dateUpdated;
+
+  return fields.reduce((p, currentField) => {
+    if (currentField.kind === "object") {
       return p;
     }
 
-    const value = actionData[c.name];
-    const isRequired = c.isRequired;
+    let value = actionData[currentField.name];
+    const isRequired = currentField.isRequired;
 
-    if (c.name === "id") {
+    if (currentField.name === "id") {
       return p;
     }
 
@@ -161,26 +193,34 @@ export const prismaGenerateDataObject = ({
       return p;
     }
 
-    const field = fields.find((f) => f.relationFromFields?.[0] === c.name);
+    if (keyDateUpdated && currentField.name === keyDateUpdated) {
+      value = new Date();
+    }
 
-    if (field) {
+    const relationalField = fields.find(
+      (f) => f.relationFromFields?.[0] === currentField.name
+    );
+
+    const hasDefault = currentField?.hasDefaultValue;
+
+    if (relationalField) {
       return {
         ...p,
-        [field.name]: {
+        [relationalField.name]: {
           connect: {
-            id: c.type === "Int" ? +value : value,
+            id: currentField.type === "Int" ? +value : value,
           },
         },
       };
     }
 
-    if (isRequired && !value) {
-      throw new Error(`Field "${c.name}" is required`);
+    if (isRequired && !value && !hasDefault) {
+      throw new Error(`Field "${currentField.name}" is required`);
     }
 
     return {
       ...p,
-      [c.name]: value,
+      [currentField.name]: value || undefined,
     };
   }, {} as any);
 };
@@ -208,7 +248,7 @@ export const prismaCreate = async ({
   data: Record<string, any>;
   model: string;
 }) => {
-  await (client[model as any] as any).create({
+  return await (client[model as any] as any).create({
     data,
   });
 };
@@ -220,7 +260,7 @@ export const prismaDelete = async ({
   id: number | string;
   model: string;
 }) => {
-  await (client[model as any] as any).delete({
+  return await (client[model as any] as any).delete({
     where: {
       id,
     },
@@ -236,7 +276,7 @@ export const prismaUpdate = async ({
   data: Record<string, any>;
   model: string;
 }) => {
-  await (client[model as any] as any).update({
+  return await (client[model as any] as any).update({
     where: {
       id,
     },
@@ -250,4 +290,24 @@ export const prismaGetFieldsForModel = ({ model }: { model: string }) => {
       (m) => m.name.toLowerCase() == model.toLowerCase()
     )?.fields || []
   );
+};
+
+export const prismRead = async ({
+  id,
+  config,
+}: {
+  id: number | string;
+  config: ConfigTypeServer<any, string>;
+}) => {
+  const clientConfigModel =
+    clientConfig[config.name as keyof typeof clientConfig];
+
+  const res = await prismaLoader({
+    query: "",
+    clientConfig: clientConfigModel,
+    config,
+    id: +id,
+  });
+
+  return res?.[0];
 };
