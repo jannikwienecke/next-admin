@@ -3,13 +3,13 @@ import { cn } from "@/lib/utils";
 import { CellContext, ColumnDef, HeaderContext } from "@tanstack/react-table";
 import React from "react";
 import { AdminTableColumnHeader } from "../../ui/admin-table-column-header";
+import { AdminStateContextType } from "../provider/state-context";
 import {
   ClientConfigServer,
   ColumnSchema,
   ColumnTypeTest,
   ConfigTypeClient,
   ConfigTypeDictClient,
-  ConfigTypeServer,
   FormFieldType,
   FormStateViewDictType,
   ICommand,
@@ -21,8 +21,6 @@ import {
   StateOfForm,
   StateOfFormDictType,
 } from "./base-types";
-import { z } from "zod";
-import { AdminStateContextType } from "../provider/state-context";
 
 export const generateColumns = <T extends IDataValue>({
   customColumns,
@@ -137,7 +135,7 @@ export const generateColumns = <T extends IDataValue>({
                   onClick={() =>
                     onClickRelationalField({
                       col: columnConfig,
-                      row,
+                      row: row.original,
                       name: columnConfig.accessorKey as string,
                     })
                   }
@@ -162,7 +160,7 @@ export const generateColumns = <T extends IDataValue>({
                   onClick={() =>
                     onClickRelationalField({
                       col: columnConfig,
-                      row,
+                      row: row.original,
                       name: columnConfig.accessorKey as string,
                     })
                   }
@@ -330,7 +328,7 @@ export const generateFields = ({
       let defaultValue = defaultFormStateValue
         ? defaultFormStateValue
         : config.labelKey === col.name
-        ? defaultValueLabelKey
+        ? defaultValueLabelKey || value
         : value || undefined;
 
       if (col.relationFromFields.length) {

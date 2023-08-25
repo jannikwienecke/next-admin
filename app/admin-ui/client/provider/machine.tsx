@@ -1,13 +1,7 @@
 import { LL } from "@/lib/utils";
 import { assign, createMachine } from "xstate";
 import { serverAction } from "../../server/actions";
-import {
-  ConfigTypeClient,
-  ConfigTypeDictClient,
-  FormStateViewDictType,
-  ICommand,
-  IDataValue,
-} from "../admin-utils/base-types";
+import { ConfigTypeDictClient, IDataValue } from "../admin-utils/base-types";
 import {
   generateColumns,
   generateCommandSearchView,
@@ -19,7 +13,6 @@ import {
   getLabelValue,
   getMetaData,
   getMissingFieldsInForm,
-  getRequiredFields,
   resetFormStateDict,
   resetStateOfForms,
   updateFormStateDict,
@@ -30,7 +23,6 @@ import {
   AdminStateContextType,
   DEFAULT_ADMIN_STATE_CONTEXT,
 } from "./state-context";
-import { getPrismaModelSchema } from "../../server/utils";
 
 export const adminMachine = createMachine(
   {
@@ -77,7 +69,8 @@ export const adminMachine = createMachine(
             actions: ["openCommandbar"],
           },
           CLICK_ON_RELATIONAL_FIELD: {
-            target: "#admin-machine.ready.showCommandbar.detail",
+            target:
+              "#admin-machine.ready.showCommandbar.search.getSingleRecord",
             actions: ["openCommandbarRelationalField"],
           },
         },
@@ -132,9 +125,19 @@ export const adminMachine = createMachine(
 
               detail: {
                 on: {
-                  CLICK_CLOSE_COMMAND_BAR: {
-                    target: "#admin-machine.ready.showCommandbar.commands",
-                  },
+                  CLICK_CLOSE_COMMAND_BAR: [
+                    {
+                      cond: (c) => {
+                        console.log("CLICK CLOSE", c);
+
+                        return Boolean(c.state.commandbar.closeOnBack);
+                      },
+                      target: "#admin-machine.ready",
+                    },
+                    {
+                      target: "#admin-machine.ready.showCommandbar.commands",
+                    },
+                  ],
                 },
               },
               search: {
@@ -153,9 +156,15 @@ export const adminMachine = createMachine(
                   searching: {},
                   detail: {
                     on: {
-                      CLICK_CLOSE_COMMAND_BAR: {
-                        target: "#admin-machine.ready.showCommandbar.search",
-                      },
+                      CLICK_CLOSE_COMMAND_BAR: [
+                        {
+                          cond: (c) => Boolean(c.state.commandbar.closeOnBack),
+                          target: "#admin-machine.ready",
+                        },
+                        {
+                          target: "#admin-machine.ready.showCommandbar.search",
+                        },
+                      ],
                     },
                   },
                   getSingleRecord: {
@@ -320,7 +329,7 @@ export const adminMachine = createMachine(
           baseColumns: modelSchema[activeClient.model]?.columns,
           columnsToHide: (activeClient.table.columnsToHide || []) as string[],
           onClickRelationalField: (props) => {
-            var evt = new CustomEvent("MyEventType", { detail: props });
+            var evt = new CustomEvent("CUSTOM_EVENT_ADMIN", { detail: props });
             window.dispatchEvent(evt);
           },
         });
@@ -519,33 +528,22 @@ export const adminMachine = createMachine(
       }),
 
       openCommandbarRelationalField: assign((c, event) => {
-        if (!c.state?.commandbar.activeConfig?.name) {
-          throw new Error("No activeConfig");
+        const config = Object.values(c.internal.config).find(
+          (c) => c.name.toLowerCase() === event.data.name.toLowerCase()
+        );
+
+        if (!config) {
+          throw new Error(`No config found for view: ${event.data.name}`);
         }
 
         return {
           ...c,
-          commandbar: {
-            ...c.commandbar,
-            view: {
-              detail: {
-                type: "detail" as const,
-                view: event.data.name,
-                activeItem: event.data.row,
-                meta: getMetaData({
-                  config: c.internal.clientConfigServer,
-                  activeRecord: event.data.row,
-                }),
-                label: getLabelValue({
-                  config: c.state?.commandbar.activeConfig,
-                  activeRecord: event.data.row,
-                }),
-                fields: generateFields({
-                  modelSchema: c.internal.modelSchema,
-                  activeRecord: event.data.row,
-                  config: c.state?.commandbar.activeConfig,
-                }),
-              },
+          state: {
+            ...c.state,
+            commandbar: {
+              ...c.state.commandbar,
+              closeOnBack: true,
+              activeConfig: config,
             },
           },
         };
@@ -571,6 +569,7 @@ export const adminMachine = createMachine(
                   config: c.internal.clientConfigServer,
                   activeRecord: event.data as IDataValue,
                 }),
+
                 type: "detail" as const,
                 view: c.state?.commandbar.activeConfig?.name,
                 activeItem: event.data as IDataValue,

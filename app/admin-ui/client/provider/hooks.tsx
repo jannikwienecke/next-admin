@@ -407,19 +407,19 @@ const useInternalEvents = () => {
 
   React.useEffect(() => {
     window.removeEventListener(
-      "MyEventType" as any,
+      "CUSTOM_EVENT_ADMIN" as any,
       clickRelationalFieldListener
     );
 
     window.addEventListener(
-      "MyEventType" as any,
+      "CUSTOM_EVENT_ADMIN" as any,
       clickRelationalFieldListener,
       false
     );
 
     return () => {
       window.removeEventListener(
-        "MyEventType" as any,
+        "CUSTOM_EVENT_ADMIN" as any,
         clickRelationalFieldListener
       );
     };

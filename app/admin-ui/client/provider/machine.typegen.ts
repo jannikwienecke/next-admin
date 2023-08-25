@@ -63,7 +63,9 @@ export interface Typegen0 {
   eventsCausingServices: {
     "invoke-action": "CRUD_SAVE";
     "invoke-delete-action": "CRUD_DELETE";
-    "invoke-get-single-record": "COMMAND_BAR_SELECT_ROW";
+    "invoke-get-single-record":
+      | "CLICK_ON_RELATIONAL_FIELD"
+      | "COMMAND_BAR_SELECT_ROW";
   };
   matchesStates:
     | "idle"
