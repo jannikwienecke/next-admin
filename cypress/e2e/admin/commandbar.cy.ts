@@ -81,4 +81,22 @@ describe("command bar navigation", () => {
 
     adminPage.getCommandbar().should("not.exist");
   });
+
+  it.only("can display relational fields", () => {
+    adminPage.openCommandbar();
+
+    adminPage.typeCommandbarInput({
+      value: "task",
+    });
+
+    adminPage.getCommandbar().findByText(/task/i).click();
+
+    adminPage
+      .getCommandbar()
+      .findByText(/task 1/i)
+      .click();
+
+    adminPage.getCommandbar().contains(/project/i);
+    adminPage.getCommandbar().contains(/status/i);
+  });
 });
