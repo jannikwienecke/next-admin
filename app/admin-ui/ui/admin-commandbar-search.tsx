@@ -88,7 +88,7 @@ const SearchViewContent = ({
 
       <CommandList className="h-[25rem]">
         {isLoadingInit === false && results.length === 0 ? (
-          <AdminCommandbarEmpty query={query} />
+          <AdminCommandbarEmpty show={false} query={query} />
         ) : null}
 
         {isLoadingInit ? <AdminCommandbarSpinner /> : null}

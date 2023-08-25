@@ -49,7 +49,7 @@ export const SliderOverHeader = ({
       <SheetTitle>{title}</SheetTitle>
       {description ? (
         <SheetDescription>
-          Make changes to your profile here. Click save when you're done.
+          Make changes to your profile here. Click save when you are done.
         </SheetDescription>
       ) : null}
     </SheetHeader>
