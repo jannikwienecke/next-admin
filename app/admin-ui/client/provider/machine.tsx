@@ -14,8 +14,16 @@ import {
   generateCommandbarActions,
   generateFields,
   generateNavigationCategories,
+  getActiveConfig,
+  getFormStateOfView,
   getLabelValue,
   getMetaData,
+  getMissingFieldsInForm,
+  getRequiredFields,
+  resetFormStateDict,
+  resetStateOfForms,
+  updateFormStateDict,
+  updateStateOfForms,
 } from "../admin-utils/utils";
 import { AdminStateEvents } from "./events";
 import {
@@ -209,6 +217,9 @@ export const adminMachine = createMachine(
                     target: "#admin-machine.ready.showForm.saving",
                     actions: ["crudSave"],
                   },
+                  CRUD_SAVE_ON_DISABLED: {
+                    actions: ["crudSaveOnDisabled"],
+                  },
                   CRUD_CLICK_CREATE_RELATIONAL_VALUE: {
                     target:
                       "#admin-machine.ready.showForm.editing.showRelationalForm",
@@ -252,6 +263,8 @@ export const adminMachine = createMachine(
                       },
                       viewName,
                     });
+
+                    LL("invoke-action res", { res });
                     return {
                       data: res,
                       event,
@@ -262,10 +275,14 @@ export const adminMachine = createMachine(
                       cond: (c) =>
                         c.form?.activeRelationalConfigs?.length === 1,
                       target: "#admin-machine.ready.showForm.editing",
-                      actions: ["resetToOriginFormAndUseCreatedValue"],
+                      actions: [
+                        "resetToOriginFormAndUseCreatedValue",
+                        // "resetFormState",
+                      ],
                     },
                     {
                       target: "#admin-machine.ready",
+                      actions: ["resetFormState"],
                     },
                   ],
                   onError: {
@@ -406,6 +423,21 @@ export const adminMachine = createMachine(
         };
       }),
 
+      resetFormState: assign((context, event) => {
+        const formStateDict = resetFormStateDict({ context });
+        const statesOfForm = resetStateOfForms({ context });
+
+        return {
+          ...context,
+          form: {
+            ...context.form,
+
+            states: formStateDict,
+            stateOfForms: statesOfForm,
+          },
+        };
+      }),
+
       crudCreateRelational: assign((context, event) => {
         const config = Object.values(context.internal.config).find(
           (c) => c.model.toLowerCase() === event.data.modelName.toLowerCase()
@@ -429,7 +461,7 @@ export const adminMachine = createMachine(
 
         const labelKey = acitveConfigsForModel[0].labelKey;
 
-        const formState = updateFormStateDict({
+        const formStateDict = updateFormStateDict({
           context: {
             ...context,
             form: {
@@ -441,13 +473,36 @@ export const adminMachine = createMachine(
           value: event.data.value,
         });
 
+        const missingFields = getMissingFieldsInForm({
+          config,
+          formStateDict,
+          modelSchema: context.internal.modelSchema,
+        });
+
+        const updatedStateOfFormDict = updateStateOfForms({
+          context: {
+            ...context,
+            form: {
+              ...context.form,
+              activeRelationalConfigs: acitveConfigsForModel,
+            },
+          },
+          newStateOfForm: {
+            isDirty: true,
+            missingFields: missingFields?.map((f) => f.name),
+            showMissingValues: false,
+            isReady: !missingFields,
+          },
+        });
+
         return {
           ...context,
           form: {
             ...context.form,
             title: `Create ${config.label}`,
             activeRelationalConfigs: acitveConfigsForModel,
-            state: formState,
+            states: formStateDict,
+            stateOfForms: updatedStateOfFormDict,
             fields: generateFields({
               modelSchema: context.internal.modelSchema,
               activeRecord: undefined,
@@ -552,6 +607,29 @@ export const adminMachine = createMachine(
         };
       }),
 
+      crudSaveOnDisabled: assign((context, event) => {
+        const updatedStateOfForm = updateStateOfForms({
+          context,
+          newStateOfForm: {
+            showMissingValues: true,
+          },
+        });
+
+        return {
+          ...context,
+          form: {
+            ...context.form,
+            stateOfForms: updatedStateOfForm,
+            fields: generateFields({
+              modelSchema: context.internal.modelSchema,
+              activeRecord: undefined,
+              config: getActiveConfig({ context }),
+              stateOfFormDict: updatedStateOfForm,
+            }),
+          },
+        };
+      }),
+
       crudSaveError: assign((context, event) => {
         const message = (event.data as any)?.message || "Unknown error";
         return {
@@ -639,22 +717,60 @@ export const adminMachine = createMachine(
           },
         };
 
+        const _form = {
+          ...c.form,
+          activeRelationalConfigs: c.form?.activeRelationalConfigs?.slice(1),
+        };
+
+        const newConfig = getActiveConfig({
+          context: {
+            ...c,
+            form: _form,
+          },
+        });
+
+        const formStateDict = updateFormStateDict({
+          context: {
+            ...c,
+            form: _form,
+          },
+          fieldName: activeConfig?.model as string,
+          value: {
+            label: labelValue,
+            value: data.id,
+          },
+        });
+
+        const missingFields = getMissingFieldsInForm({
+          modelSchema: c.internal.modelSchema,
+          config: newConfig,
+          formStateDict: formStateDict,
+        });
+
+        const stateOfFormDict = updateStateOfForms({
+          context: c,
+          newStateOfForm: {
+            isDirty: true,
+            isReady: !missingFields,
+            missingFields: missingFields?.map((f) => f.name),
+            showMissingValues: false,
+          },
+        });
+
         return {
           ...c,
           form: {
             ...c.form,
-            state: c.form?.state
-              ? {
-                  ...c.form?.state,
-                  // [activeConfig?.name as string]: {},
-                }
-              : undefined,
+            title: `Create ${newConfig.label}`,
+            stateOfForms: stateOfFormDict,
+            states: formStateDict,
             activeRelationalConfigs: c.form?.activeRelationalConfigs?.slice(1),
             fields: generateFields({
               modelSchema: c.internal.modelSchema,
               activeRecord: undefined,
-              config: c.config,
+              config: newConfig,
               defaultFormState: defaultFormState,
+              stateOfFormDict: stateOfFormDict,
             }),
           },
         };
@@ -671,20 +787,38 @@ export const adminMachine = createMachine(
 
         const config = c.form?.activeRelationalConfigs?.[0] || c.config;
 
+        const newFormState =
+          formStateDict[config.name as keyof typeof formStateDict];
+
+        const missingFields = getMissingFieldsInForm({
+          config,
+          modelSchema: c.internal.modelSchema,
+          formStateDict,
+        });
+
+        const updatedStateOfForm = updateStateOfForms({
+          context: c,
+          newStateOfForm: {
+            isDirty: true,
+            isReady: !missingFields,
+            missingFields: missingFields?.map((f) => f.name),
+          },
+        });
+
         return {
           ...c,
           form: {
             ...c.form,
-
+            stateOfForms: updatedStateOfForm,
             fields: generateFields({
               modelSchema: c.internal.modelSchema,
               activeRecord: undefined,
               config,
-              defaultFormState:
-                formStateDict[config.name as keyof typeof formStateDict],
+              defaultFormState: newFormState,
+              stateOfFormDict: updatedStateOfForm,
             }),
 
-            state: formStateDict,
+            states: formStateDict,
           },
         };
       }),
@@ -771,52 +905,3 @@ export const adminMachine = createMachine(
     },
   }
 );
-
-export const getActiveConfig = ({
-  context,
-}: {
-  context: AdminStateContextType;
-}) => {
-  const relationalConfig = context.form?.activeRelationalConfigs?.[0];
-  const config = relationalConfig || context.config;
-
-  return config;
-};
-
-export const getFormStateOfView = ({
-  context,
-}: {
-  context: AdminStateContextType;
-}): FormStateViewDictType["string"] => {
-  const config = getActiveConfig({ context });
-  const form = context.form;
-  const viewName = config.name;
-
-  const formState = form?.state?.[viewName as keyof typeof form.state];
-
-  if (!formState) return {} as FormStateViewDictType;
-
-  return formState;
-};
-
-export const updateFormStateDict = ({
-  context,
-  fieldName,
-  value,
-}: {
-  context: AdminStateContextType;
-  fieldName: string;
-  value: any;
-}): FormStateViewDictType => {
-  const formStateDict = context.form?.state || ({} as FormStateViewDictType);
-  const viewName = getActiveConfig({ context }).name;
-  const formStateOfView = getFormStateOfView({ context });
-
-  return {
-    ...formStateDict,
-    [viewName]: {
-      ...formStateOfView,
-      [fieldName]: value,
-    },
-  };
-};

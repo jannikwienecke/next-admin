@@ -45,12 +45,14 @@ export interface Typegen0 {
     crudSaveError:
       | "error.platform.invoke-action"
       | "error.platform.invoke-delete-action";
+    crudSaveOnDisabled: "CRUD_SAVE_ON_DISABLED";
     formChange: "FORM_CHANGE";
     hideCommands: "CLICK_CLOSE_COMMANDS";
     init: "INIT_STATE";
     openCommandbar: "CLICK_OPEN_COMMAND_BAR";
     openCommandbarDetailFromSearch: "done.invoke.invoke-get-single-record";
     openCommandbarRelationalField: "CLICK_ON_RELATIONAL_FIELD";
+    resetFormState: "done.invoke.invoke-action";
     resetToOriginForm: "CRUD_CANCEL";
     resetToOriginFormAndUseCreatedValue: "done.invoke.invoke-action";
     showCommands: "CLICK_OPEN_COMMAND_BAR";

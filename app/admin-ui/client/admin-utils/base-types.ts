@@ -189,6 +189,7 @@ export type FormFieldType = React.InputHTMLAttributes<HTMLInputElement> & {
   defaultValue: string;
   placeholder?: string;
   type: "Int" | "String" | "Relation";
+  error?: string;
   relation?: {
     name: string;
     fromField: string;
@@ -247,5 +248,16 @@ export type ClientConfigServer = {
 };
 
 export type FormStateViewDictType = {
-  string: Record<string, any>;
+  [key: string]: Record<string, any>;
+};
+
+export type StateOfForm = {
+  isDirty: boolean;
+  isReady: boolean;
+  missingFields?: string[];
+  showMissingValues?: boolean;
+};
+
+export type StateOfFormDictType = {
+  [key: string]: StateOfForm;
 };

@@ -11,11 +11,6 @@ type Action = {
   data: Record<string, any>;
 };
 
-// type Sorting = {
-//   name: "sorting";
-//   data: SortingProps;
-// };
-
 type ServerEventsProps = {
   action: Action; // Sorting;
   viewName: string;
@@ -23,6 +18,8 @@ type ServerEventsProps = {
 
 export async function serverAction(props: ServerEventsProps) {
   const { action } = props;
+
+  console.log("serverAction", props);
 
   const actionFn = ACTION_DICT[action.name];
 

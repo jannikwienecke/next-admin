@@ -181,18 +181,10 @@ export const prismaGenerateDataObject = ({
     .filter((f) => f.kind === "object")
     .map((f) => f.relationFromFields)
     .flat();
-  console.log(x);
 
   return fields.reduce((p, currentField) => {
     if (x.includes(currentField.name)) return p;
     if (currentField.isList) return p;
-
-    if (currentField.kind === "object") {
-      console.log(" ");
-      console.log("currentField", currentField.name);
-      console.log(currentField.kind);
-      console.log(currentField.isRequired);
-    }
 
     let value = actionData[currentField.name];
     const isRequired = currentField.isRequired;

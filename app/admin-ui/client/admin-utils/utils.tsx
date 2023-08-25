@@ -11,12 +11,15 @@ import {
   ConfigTypeDictClient,
   ConfigTypeServer,
   FormFieldType,
+  FormStateViewDictType,
   ICommand,
   IDataValue,
   MetaDataType,
   ModelSchema,
   RelationalFieldClickHandlerProps,
   SidebarCategoryProps,
+  StateOfForm,
+  StateOfFormDictType,
 } from "./base-types";
 import { z } from "zod";
 import { AdminStateContextType } from "../provider/state-context";
@@ -285,16 +288,20 @@ export const generateFields = ({
   activeRecord,
   defaultValueLabelKey,
   defaultFormState,
+  stateOfFormDict,
 }: {
   modelSchema: ModelSchema;
   config: ConfigTypeClient<any, string>;
   activeRecord?: IDataValue;
   defaultValueLabelKey?: string;
   defaultFormState?: Record<string, any>;
+  stateOfFormDict?: StateOfFormDictType;
 }): FormFieldType[] => {
   const { fieldToHide } = config.form;
 
   const modelSchema = moderlSchamDict[config.model];
+  const stateOfForm =
+    stateOfFormDict?.[config.name as keyof typeof stateOfFormDict];
 
   const baseColumnRelationFields = modelSchema.columns
     .map((c) => c.relationFromFields?.[0])
@@ -344,12 +351,18 @@ export const generateFields = ({
       }
 
       return {
+        error:
+          stateOfForm?.showMissingValues &&
+          stateOfForm?.missingFields?.includes(col.name)
+            ? `Field ${col.name} is required`
+            : undefined,
         relation,
         name,
         value: defaultValue,
         defaultValue,
         required: col.isRequired,
         type,
+
         label: `${col.name.charAt(0).toUpperCase() + col.name.slice(1)}`,
         placeholder: `Enter ${
           col.name.charAt(0).toUpperCase() + col.name.slice(1)
@@ -428,5 +441,150 @@ export const generateCommandSearchView = ({
 
   return {
     view: "full",
+  };
+};
+
+export const getRequiredFields = ({
+  config,
+  modelSchema,
+}: {
+  config: ConfigTypeClient<any, string>;
+  modelSchema: ModelSchema;
+}) => {
+  const moderlSchamDict = modelSchema[config.model];
+
+  const columns = moderlSchamDict.columns;
+  const relationalIdFields = columns.map((c) => c.relationFromFields).flat();
+
+  const requiredColumns = columns.filter(
+    (c) =>
+      c.isRequired &&
+      !c.isList &&
+      !c.hasDefaultValue &&
+      !relationalIdFields.includes(c.name)
+  );
+
+  return requiredColumns;
+};
+
+export const getMissingFieldsInForm = ({
+  config,
+  modelSchema,
+  formStateDict,
+}: {
+  config: ConfigTypeClient<any, string>;
+  modelSchema: ModelSchema;
+  formStateDict: FormStateViewDictType;
+}) => {
+  const requiredFields = getRequiredFields({ config, modelSchema });
+
+  const missingFields = requiredFields.filter((f) => {
+    return !formStateDict?.[config.name as keyof typeof formStateDict]?.[
+      f.name
+    ];
+  });
+
+  return missingFields.length ? missingFields : undefined;
+};
+
+export const getActiveConfig = ({
+  context,
+}: {
+  context: AdminStateContextType;
+}) => {
+  const relationalConfig = context.form?.activeRelationalConfigs?.[0];
+  const config = relationalConfig || context.config;
+
+  return config;
+};
+
+export const getFormStateOfView = ({
+  context,
+}: {
+  context: AdminStateContextType;
+}): FormStateViewDictType["string"] => {
+  const config = getActiveConfig({ context });
+  const form = context.form;
+  const viewName = config.name;
+
+  const formState = form?.states?.[viewName as keyof typeof form.states];
+
+  if (!formState) return {} as FormStateViewDictType;
+
+  return formState;
+};
+
+export const updateFormStateDict = ({
+  context,
+  fieldName,
+  value,
+}: {
+  context: AdminStateContextType;
+  fieldName: string;
+  value: any;
+}): FormStateViewDictType => {
+  const formStateDict = context.form?.states || ({} as FormStateViewDictType);
+  const viewName = getActiveConfig({ context }).name;
+  const formStateOfView = getFormStateOfView({ context });
+
+  return {
+    ...formStateDict,
+    [viewName]: {
+      ...formStateOfView,
+      [fieldName]: value,
+    },
+  };
+};
+
+export const resetFormStateDict = ({
+  context,
+}: {
+  context: AdminStateContextType;
+}): FormStateViewDictType => {
+  const formStateDict = context.form?.states || ({} as FormStateViewDictType);
+  const activeViewName = getActiveConfig({ context }).name;
+
+  return {
+    ...formStateDict,
+    [activeViewName]: {},
+  };
+};
+
+export const resetStateOfForms = ({
+  context,
+}: {
+  context: AdminStateContextType;
+}): StateOfFormDictType => {
+  const config = getActiveConfig({ context });
+  const states = context.form?.stateOfForms || ({} as StateOfFormDictType);
+
+  return {
+    ...states,
+    [config.name]: {
+      isDirty: false,
+      showMissingValues: false,
+      isReady: false,
+      missingFields: undefined,
+    },
+  };
+};
+
+export const updateStateOfForms = ({
+  context,
+  newStateOfForm,
+}: {
+  context: AdminStateContextType;
+  newStateOfForm: Partial<StateOfForm>;
+}): StateOfFormDictType => {
+  const config = getActiveConfig({ context });
+  const states = context.form?.stateOfForms || ({} as StateOfFormDictType);
+  const stateOfCurrentForm = states[config.name as keyof typeof states] || {};
+
+  return {
+    ...states,
+    [config.name]: {
+      ...stateOfCurrentForm,
+      ...newStateOfForm,
+    },
   };
 };

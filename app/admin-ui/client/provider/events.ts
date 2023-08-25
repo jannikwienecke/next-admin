@@ -56,6 +56,9 @@ export type AdminStateEvents =
       type: "CRUD_SAVE";
     }
   | {
+      type: "CRUD_SAVE_ON_DISABLED";
+    }
+  | {
       type: "CRUD_CLICK_CREATE_RELATIONAL_VALUE";
       data: {
         modelName: string;

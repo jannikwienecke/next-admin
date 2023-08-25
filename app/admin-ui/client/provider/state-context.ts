@@ -12,6 +12,7 @@ import {
   MetaDataType,
   ModelSchema,
   SidebarCategoryProps,
+  StateOfFormDictType,
   TableFilterProps,
   ViewToggleOptionType,
 } from "../admin-utils/base-types";
@@ -63,13 +64,14 @@ export interface AdminStateContextType {
     };
   };
 
-  form?: {
+  form: {
     title?: string;
     description?: string;
     fields?: FormFieldType[];
     schema?: Record<string, z.ZodType<any, any, any>>;
     activeRelationalConfigs?: ConfigTypeClient<any, string>[];
-    state?: FormStateViewDictType;
+    states?: FormStateViewDictType;
+    stateOfForms?: StateOfFormDictType;
     error?:
       | {
           message: string;
@@ -126,7 +128,8 @@ export const DEFAULT_ADMIN_STATE_CONTEXT: AdminStateContextType = {
     description: "",
     fields: [],
     error: undefined,
-    state: undefined,
+    states: undefined,
+    stateOfForms: undefined,
   },
   state: {
     activeRow: undefined,

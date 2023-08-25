@@ -1,4 +1,6 @@
+import { useToast } from "@/components/ui/use-toast";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Router } from "next/router";
 import React from "react";
 import {
   FormFieldType,
@@ -9,12 +11,7 @@ import {
 } from "../admin-utils/base-types";
 import { Routing } from "../admin-utils/routing";
 import { SomeMachineContext } from "./state";
-import { serverAction } from "../../server/actions";
-import { useToast } from "@/components/ui/use-toast";
-import { useForm } from "react-hook-form";
-import { LL } from "@/lib/utils";
-import { Router } from "next/router";
-import { accessSync } from "fs";
+import { getActiveConfig } from "../admin-utils/utils";
 
 const useRouting = () => {
   const router = useRouter();
@@ -92,6 +89,7 @@ export const useAdmin = () => {
   const columns = SomeMachineContext.useSelector(
     (state) => state.context.columns
   );
+
   const control = SomeMachineContext.useSelector(
     (state) => state.context.control
   );
@@ -122,6 +120,10 @@ export const useAdmin = () => {
     onSubmit: emiiter.clickSave,
   });
 
+  const activeConfig = getActiveConfig({ context: state.context });
+  const activeFormState =
+    form.stateOfForms?.[activeConfig?.name as keyof typeof form.stateOfForms];
+
   return {
     state,
     send,
@@ -136,6 +138,8 @@ export const useAdmin = () => {
     emiiter,
     query,
     commandbar,
+    activeConfig,
+    activeFormState,
   };
 };
 
@@ -221,6 +225,10 @@ const useUiEvents = () => {
     send({ type: "CRUD_SAVE" });
   };
 
+  const clickSaveOnDisabeld = () => {
+    send({ type: "CRUD_SAVE_ON_DISABLED" });
+  };
+
   const clickDelete = (row: IDataValue) => {
     send({ type: "CRUD_DELETE", data: { row } });
   };
@@ -273,6 +281,7 @@ const useUiEvents = () => {
     clickEdit,
     clickCancel,
     clickSave,
+    clickSaveOnDisabeld,
     clickDelete,
     clickCreateRelationalValue,
     clickSorting,
