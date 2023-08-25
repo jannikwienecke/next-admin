@@ -1,8 +1,8 @@
 /// <reference types="cypress" />
 
-import { clientConfig } from "../../config";
+import { AdminPage } from "../../utils/POM/adminPom";
 
-const sampleConfig = clientConfig.iProject;
+const adminPage = new AdminPage();
 
 describe("basic crud operations", () => {
   before(() => {
@@ -19,29 +19,25 @@ describe("basic crud operations", () => {
   });
 
   it("can add element", () => {
-    // click create
-    cy.contains(/create/i).click();
-    // see the label create projects
-    cy.contains(/create projects/i);
+    adminPage.openCreate({
+      view: "iProject",
+    });
 
-    // see placeholder enter name
-    // type NewProject into input field with placeholder "Enter name"
-    // cy.get("input[placeholder='Enter name']").type("NewProject");
-    cy.findByPlaceholderText(/enter name/i)
-      .should("exist")
-      .type("NewProject");
+    adminPage.fillTextInput({
+      placeholder: /enter name/i,
+      value: "NewProject",
+    });
 
-    // see placeholder enter description
-    // type NewProject into input field with placeholder "Enter description"
-    cy.findByPlaceholderText(/enter description/i)
-      .should("exist")
-      .type("NewProjectDescription");
+    adminPage.fillTextInput({
+      placeholder: /enter description/i,
+      value: "NewProjectDescription",
+    });
 
-    // should be persisted
-    // click cancel
-    cy.findByText(/cancel/i).click();
-    // open again
-    cy.contains(/create/i).click();
+    adminPage.closeForm();
+
+    adminPage.openCreate({
+      view: "iProject",
+    });
 
     // see the inputs we typed
     cy.findByPlaceholderText(/enter name/i).should("have.value", "NewProject");
@@ -50,12 +46,10 @@ describe("basic crud operations", () => {
       "NewProjectDescription"
     );
 
-    // click save
-    cy.findByText(/save/i).click();
+    adminPage.saveForm();
 
-    // expect to see the new project in the list
-    // first make sure we dont see the create button
-    cy.contains(/save/i).should("not.exist");
+    adminPage.expectFormToBeClosed();
+
     cy.contains(/newproject/i);
   });
 
@@ -67,27 +61,30 @@ describe("basic crud operations", () => {
 
     cy.findByText(/edit/i).click();
 
-    // expect to see a input field with value containing project
-    cy.findByPlaceholderText("Enter Name").clear().type("NewProject");
-    cy.findByPlaceholderText("Enter Description")
-      .clear()
-      .type("NewProjectDescription");
+    adminPage.editTextInput({
+      placeholder: /enter name/i,
+      value: "NewProject",
+    });
 
-    // click save changes
-    cy.findByText(/save changes/i).click();
-    cy.findByText(/save changes/i).should("not.exist");
+    adminPage.editTextInput({
+      placeholder: /enter description/i,
+      value: "NewProjectDescription",
+    });
+
+    adminPage.saveForm();
+    adminPage.expectFormToBeClosed();
 
     cy.contains(/newproject/i);
     cy.contains(/newprojectdescription/i);
   });
 
   it("can delete element", () => {
-    cy.get("tr").then((tr) => {
+    adminPage.getFirstRow().then((tr) => {
       const length = Cypress.$(tr).length;
 
-      cy.wrap(tr)
-        .contains(/open menu/i)
-        .click();
+      adminPage.openRowContextMenu({
+        tr,
+      });
 
       cy.findByText(/delete/i).click();
 
@@ -98,11 +95,26 @@ describe("basic crud operations", () => {
 
   // special cases
   it("special:create:required fields", () => {
-    cy.createProject({
-      name: "",
-      description: "NewProjectDescription",
+    adminPage.openCreate({
+      view: "iProject",
     });
 
-    cy.findByText(/is required/i).should("exist");
+    adminPage.fillTextInput({
+      placeholder: /enter desc/i,
+      value: "NewProjectDescription",
+    });
+
+    cy.findByText(/name is required/i).should("not.exist");
+
+    adminPage.saveForm();
+
+    cy.findByText(/name is required/i).should("exist");
+
+    adminPage.fillTextInput({
+      placeholder: /enter name/i,
+      value: "NewProject",
+    });
+
+    cy.findByText(/name is required/i).should("not.exist");
   });
 });

@@ -61,14 +61,7 @@ export const SliderOverFooter = ({
 }: {
   children: React.ReactNode;
 }) => {
-  return (
-    <SheetFooter>
-      <SheetClose asChild>
-        {/* <Button type="submit">Save changes</Button> */}
-        {children}
-      </SheetClose>
-    </SheetFooter>
-  );
+  return <SheetFooter>{children}</SheetFooter>;
 };
 
 export const SliderOverContent = ({
