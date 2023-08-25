@@ -22,7 +22,9 @@ export const getConfigByModel = (
   serverConfig: ConfigTypeDictServer,
   model: string
 ) => {
-  const config = Object.values(serverConfig).find((c) => c.model == model);
+  const config = Object.values(serverConfig).find(
+    (c) => c.model?.toLowerCase() == model?.toLowerCase()
+  );
 
   return config;
 };

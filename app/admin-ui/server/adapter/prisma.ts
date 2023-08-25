@@ -4,10 +4,9 @@ import {
   ConfigTypeServer,
   SortingProps,
 } from "@/app/admin-ui/client/admin-utils/base-types";
-import { getPrismaModelSchema } from "../utils";
-import { serverConfig } from "@/app/index.server";
 import { clientConfig } from "@/app/index.client";
-import { prisma } from "@/app/db";
+import { serverConfig } from "@/app/index.server";
+import { getConfigByModel, getPrismaModelSchema } from "../utils";
 
 const { client, schema } = PRODVIDER.prisma;
 
@@ -56,10 +55,31 @@ export const prismaLoader = async ({
 
   const crudRead = config.crud?.read;
 
+  const fields = prismaGetFieldsForModel({ model: config.model });
+
+  // if is relational field
+  // we need to find the config for this relational field - By the model name
+  // if so we need to use the labelKey for the sorting
+  const isRelationalField = fields.find(
+    (f) => f.name === sorting?.id && f.relationFromFields?.length
+  );
+
+  const newConfig = getConfigByModel(serverConfig, sorting?.id!);
+
+  if (isRelationalField && !newConfig) {
+    throw new Error(`Cannot find config for model "${sorting?.id}"`);
+  }
+
   const orderBy = sorting?.id
-    ? {
-        [sorting.id]: sorting.direction,
-      }
+    ? !isRelationalField && !newConfig
+      ? {
+          [sorting.id]: sorting.direction,
+        }
+      : {
+          [sorting.id]: {
+            [newConfig!.crud.read.labelKey]: sorting.direction,
+          },
+        }
     : crudRead.orderBy || {
         [crudRead.labelKey]: "asc",
       };
