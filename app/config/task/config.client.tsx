@@ -1,6 +1,6 @@
 import { ColumnTypeTest } from "@/app/admin-ui/client/admin-utils/base-types";
 import { createClientView } from "@/app/admin-ui/server/utils";
-import { TargetIcon } from "@radix-ui/react-icons";
+import { CookieIcon, TargetIcon } from "@radix-ui/react-icons";
 import { ColorCell } from "./custom-components";
 import { TagInterface } from "./types";
 import { prisma } from "@/app/db";
@@ -33,7 +33,7 @@ export default createClientView<ITask, keyof typeof prisma>({
     // fieldToHide: ["AcitivityTag", "colorId"],
   },
   navigation: {
-    icon: TargetIcon,
+    icon: CookieIcon,
     parent: "All",
   },
 });

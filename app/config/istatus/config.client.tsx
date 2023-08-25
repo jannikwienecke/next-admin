@@ -21,7 +21,7 @@ export default createClientView<IStatus, keyof typeof prisma>({
     // fieldToHide: ["AcitivityTag", "colorId"],
   },
   navigation: {
-    icon: ColorWheelIcon,
+    icon: TargetIcon,
     parent: "All",
   },
 });
