@@ -38,7 +38,7 @@ jobs:
         uses: cypress-io/github-action@v5
         with:
           build: npm run build
-          start: npm run e2e:headless
+          start: npm run start
           wait-on: http://localhost:3000
           wait-on-timeout: 120
 
