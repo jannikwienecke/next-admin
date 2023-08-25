@@ -20,7 +20,7 @@ export function AdminCommandbar() {
         open={isOpen}
         onOpenChange={(open) => !open && emiiter.clickCloseCommandbar}
       >
-        <div>
+        <div data-cy="admin-commandbar">
           {isDetailView && commandbar.view?.detail?.activeItem ? (
             <DetailView />
           ) : isSearchView ? (

@@ -72,9 +72,9 @@ const CommandDialogContent = () => {
 
 const DetailViewLabel = (props: { label: string }) => {
   return (
-    <div className="block text-base font-sm text-gray-600 font-semibold ">
+    <label className="block text-base font-sm text-gray-600 font-semibold ">
       {props.label}
-    </div>
+    </label>
   );
 };
 

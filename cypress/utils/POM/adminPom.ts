@@ -73,4 +73,30 @@ export class AdminPage {
 
     cy.findByPlaceholderText(/search item/i).should("not.exist");
   }
+
+  openCommandbar() {
+    cy.get("body").trigger("keydown", {
+      key: "k",
+      metaKey: true,
+    });
+  }
+
+  goBackCommandbar() {
+    this.getCommandbar().trigger("keydown", {
+      key: "Escape",
+    });
+  }
+
+  typeCommandbarInput({ value }: { value: string }) {
+    cy.findByPlaceholderText(/type a command/i).type(value);
+  }
+
+  // data-cy
+  getByTestId({ testId }: { testId: string }) {
+    return cy.get(`[data-cy=${testId}]`);
+  }
+
+  getCommandbar() {
+    return this.getByTestId({ testId: "admin-commandbar" });
+  }
 }
