@@ -20,13 +20,24 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: connect to postgres
+        run: |
+          bash prisma/scripts/init-task.sh
+        env:
+          POSTGRES_PASSWORD: admin
+          POSTGRES_USER: postgres
+          POSTGRES_DB: db
+
       # Install NPM dependencies, cache them correctly
       # and run all Cypress tests
       - name: Cypress run
         uses: cypress-io/github-action@v5
         with:
           build: npm run build
-          seed: "bash prisma/scripts/init-task.sh"
           start: npm run e2e:headless
           wait-on: http://localhost:3000
           wait-on-timeout: 120
