@@ -1,8 +1,11 @@
 /// <reference types="cypress" />
 
+import { AdminPage } from "../../../cypress/utils/POM/adminPom";
 import { clientConfig } from "../../config";
 
-const sampleConfig = clientConfig.iProject;
+const projectConfig = clientConfig.iProject;
+
+const adminPage = new AdminPage();
 
 describe("base navigation testing", () => {
   beforeEach(() => {
@@ -17,9 +20,27 @@ describe("base navigation testing", () => {
     // expect to have <nav> <li> elements
     cy.get("nav").find("li").should("have.have.length.greaterThan", 0);
 
-    cy.contains(sampleConfig.label).click();
-    cy.url().should("include", sampleConfig.name);
+    cy.contains(projectConfig.label).click();
+    cy.url().should("include", projectConfig.name);
 
     // expect(cy.url()).to.include(sampleConfig.name);
+  });
+
+  it("can jump to relational command bar detail page", () => {
+    cy.contains(/project 1/i).click();
+
+    adminPage
+      .getCommandbar()
+      .contains(/project 1/i)
+      .click();
+
+    adminPage.getCommandbar().contains(/desc/i);
+
+    adminPage.goBackCommandbar();
+
+    adminPage
+      .getCommandbar()
+      .contains(/project 1/i)
+      .should("not.exist");
   });
 });
