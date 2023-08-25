@@ -90,4 +90,3 @@ INSERT INTO "public"."ITask" ("title", "description", "statusId", "projectId") V
 INSERT INTO "public"."ITaskTag" ("tagId", "taskId") VALUES (1, 1);
 INSERT INTO "public"."ITaskTag" ("tagId", "taskId") VALUES (2, 2);
 INSERT INTO "public"."ITaskTag" ("tagId", "taskId") VALUES (2, 3);
-```
