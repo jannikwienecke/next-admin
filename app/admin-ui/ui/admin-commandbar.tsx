@@ -18,7 +18,9 @@ export function AdminCommandbar() {
     <>
       <CommandDialog
         open={isOpen}
-        onOpenChange={(open) => !open && emiiter.clickCloseCommandbar}
+        onOpenChange={(open) => {
+          !open && emiiter.clickCloseCommandbar();
+        }}
       >
         <div data-cy="admin-commandbar">
           {isDetailView && commandbar.view?.detail?.activeItem ? (

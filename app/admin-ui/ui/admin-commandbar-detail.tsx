@@ -14,9 +14,9 @@ export const DetailView = () => {
 };
 
 const CommandDialogContent = () => {
-  const { state } = useAdminState();
+  const { state, activeConfig } = useAdminState();
 
-  const { activeItem, label, fields, meta } =
+  const { activeItem, label, fields, meta, view } =
     state.context.commandbar.view.detail || {};
 
   if (!activeItem) return null;
@@ -30,13 +30,14 @@ const CommandDialogContent = () => {
           <div className="text-3xl flex flex-row justify-between w-full items-center">
             <div className="font-bold">{label}</div>
             <div className="rounded-lg text-xl bg-gray-100 py-2 border-gray-300 border-[1px] px-4">
-              {label}
+              {view}
             </div>
           </div>
         </div>
 
         <div className="min-h-[25rem] py-8 px-6 flex flex-col space-y-2">
           {fields?.map((field) => {
+            if (activeConfig.labelKey === field.name) return null;
             return (
               <div key={field.name}>
                 <DetailViewLabel label={field.label} />
