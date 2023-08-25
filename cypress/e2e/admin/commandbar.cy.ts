@@ -82,7 +82,7 @@ describe("command bar navigation", () => {
     adminPage.getCommandbar().should("not.exist");
   });
 
-  it.only("can display relational fields", () => {
+  it("can display relational fields", () => {
     adminPage.openCommandbar();
 
     adminPage.typeCommandbarInput({
