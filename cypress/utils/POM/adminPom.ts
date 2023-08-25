@@ -32,8 +32,11 @@ export class AdminPage {
       .click();
   }
 
-  getFirstRow() {
+  getRow() {
     return cy.get("tr");
+  }
+  getFirstRow() {
+    return cy.get("tr").eq(1);
   }
 
   fillTextInput({
@@ -44,6 +47,19 @@ export class AdminPage {
     value: string;
   }) {
     cy.findByPlaceholderText(placeholder).should("exist").type(value);
+  }
+
+  tableOrderBy({
+    orderBy,
+    by,
+  }: {
+    orderBy: string | RegExp;
+    by: "desc" | "asc";
+  }) {
+    cy.findByText(orderBy).click();
+    cy.findByRole("menuitem", {
+      name: by === "asc" ? /asc/i : /desc/i,
+    }).click();
   }
 
   editTextInput({

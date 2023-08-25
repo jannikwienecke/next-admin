@@ -79,7 +79,7 @@ describe("basic crud operations", () => {
   });
 
   it("can delete element", () => {
-    adminPage.getFirstRow().then((tr) => {
+    adminPage.getRow().then((tr) => {
       const length = Cypress.$(tr).length;
 
       adminPage.openRowContextMenu({
