@@ -29,7 +29,7 @@ describe("command bar navigation", () => {
 
     adminPage
       .getCommandbar()
-      .findByText(/builduing a new home/i)
+      .findByText(/builduing a new house/i)
       .should("exist");
 
     adminPage
@@ -39,7 +39,7 @@ describe("command bar navigation", () => {
 
     adminPage
       .getCommandbar()
-      .findByText(/builduing a new home/i)
+      .findByText(/builduing a new house/i)
       .should("not.exist");
 
     adminPage
@@ -60,14 +60,14 @@ describe("command bar navigation", () => {
 
     adminPage
       .getCommandbar()
-      .findByText(/builduing a new home/i)
+      .findByText(/builduing a new house/i)
       .should("exist");
 
     adminPage.goBackCommandbar();
 
     adminPage
       .getCommandbar()
-      .findByText(/builduing a new home/i)
+      .findByText(/builduing a new house/i)
       .should("not.exist");
 
     adminPage.getCommandbar().findByText(/tasks/i).should("exist");
@@ -93,7 +93,7 @@ describe("command bar navigation", () => {
 
     adminPage
       .getCommandbar()
-      .findByText(/task 1/i)
+      .findByText(/buy food for the competition/i)
       .click();
 
     adminPage.getCommandbar().contains(/project/i);

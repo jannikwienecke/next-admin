@@ -32,11 +32,11 @@ describe("base navigation testing", () => {
   });
 
   it("can jump to relational command bar detail page", () => {
-    cy.contains(/builduing a new home/i).click();
+    cy.contains(/builduing a new house/i).click();
 
     adminPage
       .getCommandbar()
-      .contains(/builduing a new home/i)
+      .contains(/builduing a new house/i)
       .click();
 
     adminPage.getCommandbar().contains(/desc/i);
@@ -45,7 +45,7 @@ describe("base navigation testing", () => {
 
     adminPage
       .getCommandbar()
-      .contains(/builduing a new home/i)
+      .contains(/builduing a new house/i)
       .should("not.exist");
   });
 });

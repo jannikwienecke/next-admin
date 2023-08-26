@@ -6,8 +6,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuSub,
   DropdownMenuSubContent,
@@ -30,12 +28,14 @@ export interface DropdownProps {
   items: DropdownItemProps[];
   TriggerButton?: React.ReactNode;
   headline?: string;
+  size?: "sm" | "default" | "lg";
 }
 export function Dropdown({
   title,
   items,
   TriggerButton,
   headline,
+  size,
 }: DropdownProps) {
   return (
     <DropdownMenu>
@@ -45,8 +45,8 @@ export function Dropdown({
         ) : (
           <Button
             variant="outline"
-            size="sm"
-            className="ml-auto hidden h-8 lg:flex"
+            size={size || "sm"}
+            className="ml-auto hidden h-12 lg:flex"
           >
             <MixerHorizontalIcon className="mr-2 h-4 w-4" />
             {title}

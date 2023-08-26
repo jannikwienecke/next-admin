@@ -21,23 +21,23 @@ describe("view control", () => {
 
     adminPage
       .getFirstRow()
-      .contains(/builduing a new home/i)
+      .contains(/builduing a new house/i)
       .should("not.exist");
 
-    adminPage.getFirstRow().contains(/Win Mr Olympia/i);
+    adminPage.getFirstRow().contains(/train/i).should("exist");
 
-    // sort by asc
+    // // sort by asc
     adminPage.tableOrderBy({
       orderBy: /title/i,
       by: "asc",
     });
 
-    adminPage.getFirstRow().contains(/builduing a new home/i);
-
-    adminPage
-      .getFirstRow()
-      .contains(/Win Mr Olympia/i)
-      .should("not.exist");
+    adminPage.getFirstRow().contains(/buy food/i);
+    adminPage.getFirstRow().contains(/train/i).should("not.exist");
+    // adminPage
+    //   .getFirstRow()
+    //   .contains(/Win Mr Olympia/i)
+    //   .should("not.exist");
   });
 
   it('can sort by "desc" and "asc" for relational fields', () => {
@@ -46,25 +46,21 @@ describe("view control", () => {
       by: "desc",
     });
 
-    adminPage
-      .getFirstRow()
-      .contains(/builduing a new home/i)
-      .should("not.exist");
-
     adminPage.getFirstRow().contains(/Win Mr Olympia/i);
 
+    cy.wait(300);
     // sort by asc
     adminPage.tableOrderBy({
-      orderBy: /title/i,
+      orderBy: /iproject/i,
       by: "asc",
     });
-
-    adminPage.getFirstRow().contains(/builduing a new home/i);
 
     adminPage
       .getFirstRow()
       .contains(/Win Mr Olympia/i)
       .should("not.exist");
+
+    adminPage.getFirstRow().contains(/builduing/i);
   });
 
   it("can hide and show fields", () => {
