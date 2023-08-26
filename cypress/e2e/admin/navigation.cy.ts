@@ -13,7 +13,7 @@ describe("base navigation testing", () => {
     cy.seed();
   });
 
-  it("displays two todo items by default", () => {
+  it("can navigate with the sidebar", () => {
     // expect to have search params 'view'
     cy.url().should("include", "view");
 
@@ -23,10 +23,15 @@ describe("base navigation testing", () => {
     cy.contains(projectConfig.label).click();
     cy.url().should("include", projectConfig.name);
 
-    // expect(cy.url()).to.include(sampleConfig.name);
+    // there was a bug where clicking the same link
+    // clicking again should do nothing
+    cy.contains(projectConfig.label).click();
+
+    cy.wait(1000);
+    cy.contains(/loading/i).should("not.exist");
   });
 
-  it.only("can jump to relational command bar detail page", () => {
+  it("can jump to relational command bar detail page", () => {
     cy.contains(/builduing a new home/i).click();
 
     adminPage

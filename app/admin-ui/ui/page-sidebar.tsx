@@ -1,5 +1,4 @@
 import { Sidebar } from "@/components/container";
-import { MinusCircledIcon } from "@radix-ui/react-icons";
 import { useAdminState } from "../client/provider/state";
 
 export const PageSidebar = () => {
@@ -13,7 +12,9 @@ export const PageSidebar = () => {
           items: c.items.map((i) => {
             return {
               ...i,
+              active: routing.view === i.name,
               onClick: () => {
+                if (routing.view === i.name) return;
                 routing.redirectToView(i.name);
               },
             };
