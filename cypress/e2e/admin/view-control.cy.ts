@@ -21,10 +21,10 @@ describe("view control", () => {
 
     adminPage
       .getFirstRow()
-      .contains(/project 1/i)
+      .contains(/builduing a new home/i)
       .should("not.exist");
 
-    adminPage.getFirstRow().contains(/project 3/i);
+    adminPage.getFirstRow().contains(/Win Mr Olympia/i);
 
     // sort by asc
     adminPage.tableOrderBy({
@@ -32,11 +32,11 @@ describe("view control", () => {
       by: "asc",
     });
 
-    adminPage.getFirstRow().contains(/project 1/i);
+    adminPage.getFirstRow().contains(/builduing a new home/i);
 
     adminPage
       .getFirstRow()
-      .contains(/project 3/i)
+      .contains(/Win Mr Olympia/i)
       .should("not.exist");
   });
 
@@ -48,10 +48,10 @@ describe("view control", () => {
 
     adminPage
       .getFirstRow()
-      .contains(/project 1/i)
+      .contains(/builduing a new home/i)
       .should("not.exist");
 
-    adminPage.getFirstRow().contains(/project 3/i);
+    adminPage.getFirstRow().contains(/Win Mr Olympia/i);
 
     // sort by asc
     adminPage.tableOrderBy({
@@ -59,11 +59,11 @@ describe("view control", () => {
       by: "asc",
     });
 
-    adminPage.getFirstRow().contains(/project 1/i);
+    adminPage.getFirstRow().contains(/builduing a new home/i);
 
     adminPage
       .getFirstRow()
-      .contains(/project 3/i)
+      .contains(/Win Mr Olympia/i)
       .should("not.exist");
   });
 

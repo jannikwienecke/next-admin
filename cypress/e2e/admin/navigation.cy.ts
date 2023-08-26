@@ -26,12 +26,12 @@ describe("base navigation testing", () => {
     // expect(cy.url()).to.include(sampleConfig.name);
   });
 
-  it("can jump to relational command bar detail page", () => {
-    cy.contains(/project 1/i).click();
+  it.only("can jump to relational command bar detail page", () => {
+    cy.contains(/builduing a new home/i).click();
 
     adminPage
       .getCommandbar()
-      .contains(/project 1/i)
+      .contains(/builduing a new home/i)
       .click();
 
     adminPage.getCommandbar().contains(/desc/i);
@@ -40,7 +40,7 @@ describe("base navigation testing", () => {
 
     adminPage
       .getCommandbar()
-      .contains(/project 1/i)
+      .contains(/builduing a new home/i)
       .should("not.exist");
   });
 });

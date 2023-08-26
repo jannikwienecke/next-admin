@@ -25,7 +25,7 @@ describe("crud on relational fields for itask", () => {
 
     adminPage.selectRelationalField({
       placeholder: /select iproject/i,
-      value: /project 1/i,
+      value: /builduing a new home/i,
     });
 
     adminPage.selectRelationalField({
@@ -50,7 +50,7 @@ describe("crud on relational fields for itask", () => {
     // expect new task to be in the list
     cy.contains(/newtask/i);
     cy.contains(/newtaskdescription/i);
-    cy.contains(/project 1/i);
+    cy.contains(/builduing a new home/i);
     cy.contains(/to do/i);
   });
 
@@ -85,7 +85,7 @@ describe("crud on relational fields for itask", () => {
       .parent()
       .parent()
       .within(() => {
-        cy.findByText(/project 1/i).click();
+        cy.findByText(/builduing a new home/i).click();
       });
 
     cy.contains(/newStatus/i);
