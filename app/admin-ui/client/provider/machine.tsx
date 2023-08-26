@@ -176,17 +176,65 @@ export const adminMachine = createMachine(
                           event,
                         });
 
-                        if (!context.state.commandbar.activeConfig) {
+                        const config = context.state.commandbar.activeConfig;
+                        if (!config) {
                           throw new Error("No activeConfig");
                         }
 
-                        return (await serverAction({
+                        // // when clicking on  a relational field
+                        // what is the model we are on
+                        const startConfigModelName =
+                          context.state.commandbar.startConfig?.model;
+
+                        let idOfRow = (event as any).data.row.id;
+
+                        // if we start on the normal table view and click on a relational field
+                        if (startConfigModelName) {
+                          // we start at config "task"
+                          // we click on a relational field like iproject
+                          const moderlSchamDict =
+                            context.internal.modelSchema[
+                              startConfigModelName as keyof typeof context.internal.modelSchema
+                            ];
+
+                          // we want to find the schema of the model we are on
+                          // we click on a relational field like iproject
+                          // we need to get the id field of it (iprojectId === projectId)
+                          const columnOfClickedField =
+                            moderlSchamDict.columns.find(
+                              (c) =>
+                                c.name.toLowerCase() ===
+                                config.name.toLowerCase()
+                            );
+
+                          if (!columnOfClickedField) {
+                            throw new Error("No columnOfClickedField");
+                          }
+
+                          // here we get projectId
+                          const idOfRelationalField = (event as any).data.row[
+                            columnOfClickedField?.relationFromFields?.[0]
+                          ];
+
+                          // from the clicked task row we get the projectId
+                          idOfRow = idOfRelationalField;
+                        }
+
+                        const data = (await serverAction({
                           action: {
-                            data: (event as any).data.row,
+                            data: {
+                              id: idOfRow,
+                            },
                             name: "getSingleRecord",
                           },
-                          viewName: context.state.commandbar.activeConfig.name,
+                          viewName: config.name,
                         })) as any;
+
+                        if (!data) {
+                          throw new Error("No data");
+                        }
+
+                        return data;
                       },
                       onDone: {
                         target:
@@ -544,6 +592,7 @@ export const adminMachine = createMachine(
               ...c.state.commandbar,
               closeOnBack: true,
               activeConfig: config,
+              startConfig: c.config,
             },
           },
         };

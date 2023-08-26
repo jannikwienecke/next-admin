@@ -83,6 +83,8 @@ export interface AdminStateContextType {
     activeRow: IDataValue | undefined;
     activeAction: "create" | "edit" | undefined;
     commandbar: {
+      // the config where we started the command
+      startConfig?: ConfigTypeClient<any, string>;
       closeOnBack?: boolean;
       showCommands: boolean;
       activeConfig?: ConfigTypeClient<any, string>;
