@@ -1,5 +1,3 @@
-import { statuses } from "@/app/config/task/custom-components";
-
 import { useAdminState } from "../client/provider/state";
 import {
   Command,
@@ -131,7 +129,12 @@ const AdminFooterCommandPopover = ({
             <CommandEmpty>No results found</CommandEmpty>
 
             <CommandGroup>
-              {statuses.map((status) => (
+              {[
+                {
+                  label: "Open",
+                  value: "open",
+                },
+              ].map((status) => (
                 <CommandItem key={status.value}>{status.label}</CommandItem>
               ))}
             </CommandGroup>

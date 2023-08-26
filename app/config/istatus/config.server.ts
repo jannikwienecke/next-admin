@@ -1,5 +1,4 @@
 import { createServerView } from "@/app/admin-ui/server/utils";
-import { ColorInterface } from "./types";
 import { IStatus } from "@prisma/client";
 
 // validation

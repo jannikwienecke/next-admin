@@ -1,8 +1,7 @@
 import { createClientView } from "@/app/admin-ui/server/utils";
-import { ColorWheelIcon, FileIcon, TargetIcon } from "@radix-ui/react-icons";
-import { ColorInterface } from "./types";
 import { prisma } from "@/app/db";
-import { IProject, IStatus } from "@prisma/client";
+import { IProject } from "@prisma/client";
+import { FileIcon } from "@radix-ui/react-icons";
 
 export default createClientView<IProject, keyof typeof prisma>({
   model: "iProject",
