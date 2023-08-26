@@ -126,6 +126,7 @@ export interface ConfigTypeClient<T extends IDataValue, ModelName> {
   model: ModelName;
   name: string;
   label: string;
+  description?: string;
   baseView?: string;
   labelKey: keyof T;
   table: {

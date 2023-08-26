@@ -20,6 +20,7 @@ import { ITask } from "@prisma/client";
 export default createClientView<ITask, keyof typeof prisma>({
   model: "iTask",
   name: "task",
+  description: "Here you can manage your tasks",
   label: "Tasks",
   labelKey: "title",
   // baseView

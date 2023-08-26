@@ -124,7 +124,19 @@ export const useAdmin = () => {
   const activeFormState =
     form.stateOfForms?.[activeConfig?.name as keyof typeof form.stateOfForms];
 
+  const runningServerAction = state.matches("ready.showForm.saving");
+  const deletingRecoird = state.matches("ready.deleting");
+  const getSingleRecord = state.matches(
+    "ready.showCommandbar.search.getSingleRecord"
+  );
+
+  const isx = state.matches("ready.showCommandbar.search.detail");
+
+  const machineIsBusy =
+    runningServerAction || deletingRecoird || getSingleRecord;
+
   return {
+    machineIsBusy,
     state,
     send,
     data,
